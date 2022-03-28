@@ -1,0 +1,124 @@
+
+
+Software Version	3.03.14
+User Name:	System Administrator
+
+
+
+Experiment File Path:	C:\Users\Public\Documents\Experiments\AG Planktologie\Charly2022_TempTRT\t21\fluc_duo1_s11.xpt
+Protocol File Path:	C:\Users\Public\Documents\Protocols\Planktologie\Charly_2022_TempTrt.prt
+
+
+
+Plate Number	Plate 18
+Date	11.02.2022
+Time	16:52:35
+Reader Type:	Synergy H1
+Reader Serial Number:	1705301
+Reading Type	Reader
+
+Procedure Details
+
+Plate Type	Sarstedt 48 well plate - ICBM
+Eject plate on completion	
+Set Temperature	Incubator off
+Read	Fluorescence Endpoint
+	Full Plate
+	Filter Set 1
+	    Excitation: 395,  Emission: 680
+	    Optics: Top,  Gain: 100
+	Filter Set 2
+	    Excitation: 614,  Emission: 680
+	    Optics: Top,  Gain: 100
+	Filter Set 3
+	    Excitation: 440,  Emission: 660
+	    Optics: Top,  Gain: 100
+	Light Source: Xenon Flash,  Lamp Energy: High
+	Read Speed: Normal,  Delay: 100 msec,  Measurements/Data Point: 10
+	Read Height: 4 mm
+Read	Absorbance Endpoint
+	Full Plate
+	Wavelengths:  440, 450, 650
+	Read Speed: Normal,  Delay: 100 msec,  Measurements/Data Point: 8
+Comment	Feierabend! Speichern unter und Exportieren nicht vergessen
+	Do not display comment when procedure is run
+Set Temperature	Incubator off
+
+
+
+Actual Temperature:	26,9
+
+Read 1:395,680
+	1	2	3	4	5	6	7	8
+A	0	2	0	1	0	0	0	2	Read 1:395,680
+B	3	299	264	306	440	258	344	6	Read 1:395,680
+C	1	313	312	297	444	401	428	0	Read 1:395,680
+D	4	241	166	194	268	197	240	0	Read 1:395,680
+E	0	234	189	187	270	243	331	0	Read 1:395,680
+F	4	14	7	5	47	41	54	5	Read 1:395,680
+
+
+
+Actual Temperature:	26,9
+
+Read 1:614,680
+	1	2	3	4	5	6	7	8
+A	5	4	2	0	0	0	2	9	Read 1:614,680
+B	2	57	42	64	82	61	86	2	Read 1:614,680
+C	4	85	54	62	95	78	75	1	Read 1:614,680
+D	0	47	29	46	36	47	40	3	Read 1:614,680
+E	2	43	36	42	63	49	69	0	Read 1:614,680
+F	4	10	3	2	7	7	17	0	Read 1:614,680
+
+
+
+Actual Temperature:	26,9
+
+Read 1:440,660
+	1	2	3	4	5	6	7	8
+A	0	2	3	2	3	7	8	1	Read 1:440,660
+B	0	206	151	179	247	134	316	5	Read 1:440,660
+C	2	200	178	213	266	279	273	5	Read 1:440,660
+D	5	108	130	145	157	165	123	9	Read 1:440,660
+E	2	150	115	129	161	227	197	4	Read 1:440,660
+F	4	21	16	2	52	37	51	0	Read 1:440,660
+
+
+
+Actual Temperature:	26,8
+
+Read 2:440
+	1	2	3	4	5	6	7	8
+A	0,039	0,040	0,040	0,040	0,040	0,040	0,040	0,040	Read 2:440
+B	0,056	0,087	0,088	0,084	0,088	0,079	0,100	0,039	Read 2:440
+C	0,041	0,089	0,091	0,092	0,094	0,100	0,095	0,039	Read 2:440
+D	0,042	0,076	0,079	0,074	0,084	0,087	0,092	0,046	Read 2:440
+E	0,049	0,072	0,067	0,062	0,077	0,082	0,084	0,039	Read 2:440
+F	0,041	0,058	0,055	0,055	0,060	0,064	0,061	0,041	Read 2:440
+
+
+
+Actual Temperature:	26,8
+
+Read 2:450
+	1	2	3	4	5	6	7	8
+A	0,039	0,040	0,040	0,040	0,040	0,039	0,040	0,040	Read 2:450
+B	0,055	0,082	0,082	0,084	0,091	0,086	0,085	0,039	Read 2:450
+C	0,041	0,087	0,086	0,087	0,090	0,097	0,098	0,039	Read 2:450
+D	0,041	0,075	0,077	0,075	0,081	0,086	0,088	0,046	Read 2:450
+E	0,048	0,070	0,068	0,066	0,076	0,082	0,084	0,039	Read 2:450
+F	0,041	0,055	0,056	0,054	0,063	0,062	0,059	0,040	Read 2:450
+
+
+
+Actual Temperature:	26,8
+
+Read 2:650
+	1	2	3	4	5	6	7	8
+A	0,034	0,035	0,035	0,037	0,036	0,038	0,038	0,038	Read 2:650
+B	0,048	0,076	0,069	0,072	0,073	0,071	0,069	0,036	Read 2:650
+C	0,038	0,071	0,076	0,075	0,077	0,083	0,087	0,036	Read 2:650
+D	0,036	0,056	0,063	0,061	0,065	0,074	0,073	0,042	Read 2:650
+E	0,044	0,063	0,058	0,057	0,066	0,070	0,069	0,034	Read 2:650
+F	0,036	0,044	0,043	0,042	0,047	0,047	0,047	0,039	Read 2:650
+
