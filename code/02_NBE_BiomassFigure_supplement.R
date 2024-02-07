@@ -5,17 +5,16 @@
 # packages
 library(tidyverse)
 library(readxl)
-library(MESS)
 library(here)
-library(RColorBrewer)
 library(cowplot)
 
 setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
 
-# create color palettes
+#### create color palettes ####
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" ) # temp treatments
 cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7") #species
 shape_values <- c(23,16, 17, 15)
+
 
 #### import species-specific biomass ####
 rawData <- read.csv('AllRawData_InclBV.csv')
@@ -43,7 +42,7 @@ biomass$speciesID[biomass$speciesID=='Rhizo'] <- 'Rhizosolenia'
 biomass$speciesID[biomass$speciesID=='ThalaCux'] <- 'Thalassionema'
 
 
-###+ single plots 
+#### Indivdiual species plots ####
 
 Duoplot <- biomass %>%
   filter(species == 'duo') %>%
@@ -65,7 +64,7 @@ Duoplot <- biomass %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'bottom')
 Duoplot
-ggsave(plot = Duoplot, file = here('MicrocosmExp22/output/DuoBiomass.png'), width = 12, height = 12)
+ggsave(plot = Duoplot, file = here('MicrocosmExp22/output/FigS3_Duo_Biomass.png'), width = 12, height = 12)
 
 Quattroplot <- biomass %>%
   filter(species == 'quattro') %>%
@@ -115,7 +114,7 @@ mixplot
 #ggsave(plot = mixplot, file = here('MicrocosmExp22/output/MixBiomass.png'), width = 10, height = 3)
 
 plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(6.5/9, 2.5/9),labels = c('(a)', '(b)'))
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/QuattroMixBiomass.png'), width = 12, height = 12)
+ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
 
 
 Mono <- biomass %>%
@@ -190,39 +189,7 @@ biomass1 %>%
   #theme(plot.margin = unit(c(0,0,0,0), "cm"))+
   theme(legend.position = 'bottom')
 
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig2Biomass.png'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig1Biomass.png'), width = 15, height = 15)
 
 
 
-### CV ####
-names(biomass)
-rawData$species <- factor(as.factor(rawData$species),levels=c("mono","duo",   "quattro" ,  "MIX"))
-rawData$N <- NA
-rawData$N[rawData$species == 'mono']<-'1'
-rawData$N[rawData$species == 'duo']<-'2'
-rawData$N[rawData$species == 'quattro']<-'4'
-rawData$N[rawData$species == 'MIX']<-'5'
-
-rawData$temp[rawData$temp=='fluct'] <- 'Fluctuation'
-rawData$temp[rawData$temp=='inc'] <- 'Increase'
-rawData$temp[rawData$temp=='inc+fluc'] <- 'IncreaseFluctuation'
-rawData$temp[rawData$temp=='CS'] <- 'Control'
-
-
-rawData%>%
-  mutate(day = sampling * 2,
-         day = as.numeric(paste(ifelse(sampling == 1, 1, sampling*2))))%>%
-   group_by(species,temp, combination,N, rep,sampling)%>%
-   summarise(sum = sum(cellVolume)) %>%
-   group_by(species, temp, combination,rep,N) %>%
-   summarise(mean = mean(sum),
-         sd = sd(sum),
-         CV = mean/sd)%>%
-ggplot(.,aes(x = N, y = CV, color = temp))+
-  geom_point( alpha = 0.5,size=2)+
-  facet_grid(~temp)+
- geom_boxplot(alpha = 0.5)+
-  labs(y = 'Temporal stability (Mean/SD)')+
-  scale_colour_manual(values = tempPalette)+
-  theme_bw()
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/CV.png'), width = 8, height = 3)

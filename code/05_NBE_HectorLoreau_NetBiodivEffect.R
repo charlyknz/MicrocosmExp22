@@ -138,7 +138,8 @@ NBE_mix <- left_join(RelBV_t0_,counts_mono_tmax_, by = c( 'temp', 'speciesID', '
          #selecEffect = N*cov(NetEffect, Mi)
   )
 
-#### Plot 4-5 species ####
+
+## adjust labels 
 unique(NBE_mix$temp)
 
 NBE_mix$temp[NBE_mix$temp=='CS'] <- 'Constant'
@@ -148,50 +149,26 @@ NBE_mix$temp[NBE_mix$temp=='inc+fluc'] <- 'IncreaseFluctuation'
 
 NBE_mix$combination[NBE_mix$combination == 'ADGRT'] <- '5spec'
 
-# Net effect plot
-NBE_mix %>%
-  group_by(combination,  temp) %>%
-  summarise(mean.effect = mean(NetEffect, na.rm = T),
-            sd.effect = sd(NetEffect,na.rm = T),
-            se.effect = sd.effect/sqrt(n())) %>%
-  ggplot(., aes(x = combination, y = mean.effect, color = temp, shape = temp))+
-  geom_hline(yintercept = 0, color ='darkgrey')+
-  geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect + se.effect), width = .2,alpha = .7 )+
-  geom_point(size = 2)+
-  scale_color_manual(values= temp1Palette)+
-  scale_shape_manual(values= shape_values)+
-  labs(y = 'Net Biodiversity Effect', title = '4 and 5 species in combination', color = 'Treatment', shape = 'Treatment')+
- # facet_grid(~temp, scales = 'free_y')+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))+
-  theme(legend.position = 'bottom')
 
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonFunctioning_45_onefacet.png'), width = 8, height = 4)
-
-#### Overall NBE ####
+#### Plots NBE on Functioning ####
 
 allNetBiodiv <- bind_rows(NBE_duo, NBE_mix)%>%
-  mutate(N = str_length(combination)) 
-#write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
+  mutate(N = as.factor(str_length(combination))  )
 
+allNetBiodiv$N <- factor(as.factor(allNetBiodiv$N), levels= c( '2','4','5'))
+
+#write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
 NBE<-allNetBiodiv%>%
   group_by( temp, N) %>%
-  summarise(mean.effect = mean(NetEffect, na.rm = T),
-            sd.effect = sd(NetEffect,na.rm = T),
+  mutate(transNet = NetEffect/10^9)%>%
+  summarise(mean.effect = mean(transNet, na.rm = T),
+            sd.effect = sd(transNet,na.rm = T),
             se.effect = sd.effect/sqrt(n()))%>%
   ggplot(., aes(x = N, y = mean.effect,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .5 )+
-  geom_point(size = 2.5, alpha = 0.7)+
-  labs(x = 'Species Richness', y = 'Net Biodiversity Effect on Functioning', color = 'Treatment', shape = 'Treatment')+
-   scale_x_continuous(limits = c(1.5,5.5), breaks = c(2,4,5))+
+  geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .2, alpha = .8 )+
+  geom_point(size = 3, alpha = 1)+
+  labs(x = 'Species Combinations', y = expression(Net~Biodiversity~Effect~x~10^9), color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
   theme_bw()+
@@ -205,7 +182,55 @@ NBE<-allNetBiodiv%>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 NBE
 
-### with raw data ###
+
+
+### combinations ###
+
+labels_plot245 <- c( '2'='2 species','4'='4 species','5'='5 species')
+
+allNetBiodiv$combination[allNetBiodiv$combination == '5spec'] <- 'ADGRT'
+
+plot245<- allNetBiodiv %>%
+  group_by( combination, temp, N) %>%
+  mutate(transNet = NetEffect/10^9)%>%
+  summarise(mean.effect = mean(transNet, na.rm = T),
+            sd.effect = sd(transNet,na.rm = T),
+            se.effect = sd.effect/sqrt(n()))%>%
+  ggplot(., aes(x = combination, y = mean.effect,color = temp, shape = temp))+
+  geom_hline(yintercept = 0, color = 'darkgrey')+
+  geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .7 )+
+  geom_point(size = 2.5, alpha = 0.9)+
+  labs(x = 'Species Combinations', y = expression(Net~Biodiversity~Effect~x~10^9), color = 'Treatment', shape = 'Treatment')+
+  scale_color_manual(values= temp1Palette)+
+  scale_shape_manual(values= shape_values)+
+  facet_wrap(~N, scales = 'free_x', labeller = labeller(N = labels_plot245))+
+  theme_bw()+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12),
+        legend.position = 'right')+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+plot245
+
+
+
+blank <- ggplot()+
+  geom_blank()+
+  theme_void() 
+
+legend_f<- get_legend(plot245)
+
+nbef <- plot_grid( NBE+theme(legend.position = 'none'),plot245+theme(legend.position = 'none'),legend_f,hjust = -0.05, labels = c('(c)', '(d)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
+#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonF.png'), width = 14, height = 4.5)
+
+
+
+
+#### Explorative plots: with raw data ####
 
 NBE1 <- allNetBiodiv%>%
   group_by( temp, N) %>%
@@ -233,49 +258,3 @@ NBE1 <- allNetBiodiv%>%
 NBE1
 
 ####
-
-allNetBiodiv$N[allNetBiodiv$N == 2] <- '2 species'
-allNetBiodiv$N[allNetBiodiv$N == 4] <- '4 species'
-allNetBiodiv$N[allNetBiodiv$N == 5] <- '5 species'
-
-allNetBiodiv$combination[allNetBiodiv$combination == '5spec'] <- 'ADGRT'
-
-allNetBiodiv$N <- factor(as.factor(allNetBiodiv$N), levels= c( '2 species','4 species','5 species'))
-plot245<- allNetBiodiv %>%
-  group_by( combination, temp, N) %>%
-  summarise(mean.effect = mean(NetEffect, na.rm = T),
-            sd.effect = sd(NetEffect,na.rm = T),
-            se.effect = sd.effect/sqrt(n()))%>%
-  ggplot(., aes(x = combination, y = mean.effect,color = temp, shape = temp))+
-  geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .5 )+
-  geom_point(size = 2.5, alpha = 0.7)+
-  labs(x = 'Species Combinations', y = 'Net Biodiversity Effect on Functioning', color = 'Treatment', shape = 'Treatment')+
-  scale_color_manual(values= temp1Palette)+
-  scale_shape_manual(values= shape_values)+
-  facet_wrap(~N, scales = 'free_x')+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12),
-        legend.position = 'none')+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-plot245
-
-library(cowplot)
-blank <- ggplot()+
-  geom_blank()+
-  theme_void() 
-
-
-plot_grid(NBE+theme(legend.position = 'none'), plot245, ncol = 2, labels = c('(c)', '(d)'), rel_widths= c(1/3, 2/3), hjust = -1.5)
-plot_grid( NBE+theme(legend.position = 'none'),plot245,blank,blank, hjust = -0.05, labels = c('(c)', '(d)'), ncol = 2,rel_widths = c( 1/3,2/3), rel_heights = c(1,0.3))
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonFunctioning_all.png'), width = 13, height = 6)
-
-
-
-
