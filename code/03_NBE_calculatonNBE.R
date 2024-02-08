@@ -571,13 +571,14 @@ NBESresistance <- all_resistance  %>%
          se= sd/sqrt(n()))%>%
   ggplot(.) +
     geom_hline(yintercept = 0)+
-    geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
-    geom_point(aes( x = N, y = Mean), color = 'darkred', size = 3)+
-    geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se),color = 'darkred', width = 0.8)+
+    geom_point( aes( x = N, y = delta_ges),color='black', alpha = 0.2)+
+  geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se,color = temp), width = 0.3, alpha = 0.8)+
+  geom_point(aes( x = N, y = Mean, color = temp, shape = temp),  size = 3)+
     facet_wrap(~temp)+
-    labs(x = ' ', y= 'NBE on Resistance')+
-    theme_bw()+
-  theme(legend.position = 'bottom',
+  labs(x = 'Species Richness', y=expression(NBES[CV]))+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
         axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
@@ -700,13 +701,14 @@ NBESCV <- CV %>%
          se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
 ggplot(.) +
   geom_hline(yintercept = 0)+
-  geom_point( aes( x = N, y = NBES_CV), alpha = 0.3)+
-  geom_point(aes( x = N, y = mean_NBES_CV), color = 'darkred', size = 3)+
-  geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV),color = 'darkred', width = 0.8)+
+  geom_point( aes( x = N, y = NBES_CV),color = 'black',  alpha = 0.3)+
+  geom_point(aes( x = N, y = mean_NBES_CV,color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV,color = temp),width = 0.3, alpha = 0.8)+
   facet_wrap(~temp)+
-  labs(x = 'Species Richness', y= 'NBES on Temporal Varability (CV)')+
+  labs(x = 'Species Richness', y=expression(NBES[CV]))+
+  scale_colour_brewer(palette = "Set1")+
   theme_bw()+
-  theme(legend.position = 'bottom',
+  theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
         axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
@@ -717,6 +719,11 @@ ggplot(.) +
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 NBESCV
 ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_CV.png'), width = 8, height = 4)
+
+
+
+plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
+ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics_overall.png'), width = 8, height = 6)
 
 
 # 
@@ -776,7 +783,7 @@ PlotCV <- plot_grid( NBEScv1+theme(legend.position = 'none'),NBEScv2+theme(legen
 PlotCV
 
 PlotNBES/PlotCV
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.png'), width = 14, height = 8)
+ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.png'), width = 14, height = 6)
 
 #### Explorative plots and analysis ####
 
