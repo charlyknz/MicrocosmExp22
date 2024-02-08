@@ -171,30 +171,6 @@ stab.auc %>%
 
 #ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/SpeciesStabilityEffect.png'), width = 8,height = 5)
 
-# total effect
-stab.auc %>%
-  group_by(combination, temp)%>%
-  summarise(mean = mean(AUC.delta,na.rm = T),
-            sd = sd(AUC.delta,na.rm = T),
-            se = sd/sqrt(n())) %>%
-  ggplot(., aes(x = combination, y =mean))+
-  geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = .8)+
-  geom_point(alpha=0.8, size = 2, color = 'black')+
-  facet_grid(~temp, scales = 'free')+
-  labs(y = 'Net Biodiversity effect on Stability')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/TotDeltaRR_low.png'), width = 8, height = 3)
-
 
 
 # rel BV at to 
@@ -614,6 +590,63 @@ NBESresistance
 ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_resistance.png'), width = 8, height = 4)
 
 
+NBESres1 <- all_resistance  %>%
+  group_by(temp, N) %>%
+  summarise(Mean = mean(delta_ges),
+         sd = sd(delta_ges),
+         se= sd/sqrt(n()))%>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
+  geom_point(aes( x = N, y = Mean, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
+  #facet_wrap(~temp)+
+  labs(x = ' ', y=expression(NBES[resistance]))+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBESres1
+
+labeln <- c('2'='2 species', '4'='4 species','5'='5 species')
+NBESres2 <- all_resistance  %>%
+  group_by(temp, N,combination) %>%
+  summarise(Mean = mean(delta_ges),
+         sd = sd(delta_ges),
+         se= sd/sqrt(n()))%>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
+  geom_point(aes( x = combination, y = Mean, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= combination, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
+  facet_wrap(~N, labeller = labeller(N = labeln), scales = 'free_x')+
+  labs(x = ' ', y=expression(NBES[resistance]), color = 'Treatment', shape = 'Treatment')+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'right',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBESres2
+
+legend_nb<-get_legend(NBESres2)
+PlotNBES <- plot_grid( NBESres1,NBESres2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3, rel_widths = c(2/7,5/7))
+PlotNBES
+ggsave(plot = PlotNBES, file = here('MicrocosmExp22/output/Fig_NBESresistance.png'), width = 14, height = 4)
+
+
 #### NBES CV ####
 ## calculate how much variability is contributed by diversity 
 # therefore we assess the CV observed and expected from monoculture
@@ -654,6 +687,8 @@ CV$N[CV$species == 'duo']<-'2'
 CV$N[CV$species == 'quattro']<-'4'
 CV$N[CV$species == 'MIX']<-'5'
 
+CV$combination[CV$combination == 'Mix']<-'ADGRT'
+
 CV$temp[CV$temp=='fluct'] <- 'Fluctuation'
 CV$temp[CV$temp=='inc'] <- 'Increase'
 CV$temp[CV$temp=='inc+fluc'] <- 'IncreaseFluctuation'
@@ -669,7 +704,7 @@ ggplot(.) +
   geom_point(aes( x = N, y = mean_NBES_CV), color = 'darkred', size = 3)+
   geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV),color = 'darkred', width = 0.8)+
   facet_wrap(~temp)+
-  labs(x = 'Species Richness', y= 'NBE on Temporal Varability (CV)')+
+  labs(x = 'Species Richness', y= 'NBES on Temporal Varability (CV)')+
   theme_bw()+
   theme(legend.position = 'bottom',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
@@ -684,11 +719,64 @@ NBESCV
 ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_CV.png'), width = 8, height = 4)
 
 
-NBES_supp <- plot_grid(NBESresistance, NBESCV,ncol = 1, labels = c('(a)','(b)'))
-NBES_supp
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_metrics.png'), width = 8, height = 8)
+# 
+NBEScv1 <- CV  %>%
+  group_by(temp, N) %>%
+  summarise(mean_NBES_CV = mean(NBES_CV),
+         sd_NBES_CV = sd(NBES_CV),
+         se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  geom_point(aes( x = N, y = mean_NBES_CV, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV, color = temp), alpha=0.8,width = 0.3)+
+  #facet_wrap(~temp)+
+  labs(x = ' ', y=expression(NBES[CV]),color = 'Treatment', shape = 'Treatment')+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'right',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBEScv1
+
+legendcv<-get_legend(NBEScv1)
+
+NBEScv2 <- CV  %>%
+  group_by(temp, N, combination) %>%
+  summarise(mean_NBES_CV = mean(NBES_CV),
+            sd_NBES_CV = sd(NBES_CV),
+            se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  geom_point(aes( x = combination, y = mean_NBES_CV, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= combination, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV, color = temp), alpha=0.8,width = 0.3)+
+  facet_wrap(~N,labeller = labeller(N = labeln), scales = 'free_x')+
+  labs(x = ' ', y=expression(NBES[CV]), color = 'Treatment', shape = 'Treatment')+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBEScv2
 
 
+
+PlotCV <- plot_grid( NBEScv1+theme(legend.position = 'none'),NBEScv2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(c)', '(d)'), ncol = 3, rel_widths = c(2/7,5/7))
+PlotCV
+
+PlotNBES/PlotCV
+ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.png'), width = 14, height = 8)
 
 #### Explorative plots and analysis ####
 
