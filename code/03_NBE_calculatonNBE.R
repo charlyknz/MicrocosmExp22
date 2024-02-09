@@ -591,63 +591,6 @@ NBESresistance
 ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_resistance.png'), width = 8, height = 4)
 
 
-NBESres1 <- all_resistance  %>%
-  group_by(temp, N) %>%
-  summarise(Mean = mean(delta_ges),
-         sd = sd(delta_ges),
-         se= sd/sqrt(n()))%>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
-  geom_point(aes( x = N, y = Mean, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
-  #facet_wrap(~temp)+
-  labs(x = ' ', y=expression(NBES[resistance]))+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESres1
-
-labeln <- c('2'='2 species', '4'='4 species','5'='5 species')
-NBESres2 <- all_resistance  %>%
-  group_by(temp, N,combination) %>%
-  summarise(Mean = mean(delta_ges),
-         sd = sd(delta_ges),
-         se= sd/sqrt(n()))%>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
-  geom_point(aes( x = combination, y = Mean, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= combination, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
-  facet_wrap(~N, labeller = labeller(N = labeln), scales = 'free_x')+
-  labs(x = ' ', y=expression(NBES[resistance]), color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'right',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESres2
-
-legend_nb<-get_legend(NBESres2)
-PlotNBES <- plot_grid( NBESres1,NBESres2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3, rel_widths = c(2/7,5/7))
-PlotNBES
-ggsave(plot = PlotNBES, file = here('MicrocosmExp22/output/Fig_NBESresistance.png'), width = 14, height = 4)
-
-
 #### NBES CV ####
 ## calculate how much variability is contributed by diversity 
 # therefore we assess the CV observed and expected from monoculture
@@ -727,11 +670,75 @@ ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics_ov
 
 
 # 
+#### Explorative plots and analysis ####
+
+### multiple facets cv and resistance ###
+
+##resistance
+
+NBESres1 <- all_resistance  %>%
+  group_by(temp, N) %>%
+  summarise(Mean = mean(delta_ges),
+            sd = sd(delta_ges),
+            se= sd/sqrt(n()))%>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
+  geom_point(aes( x = N, y = Mean, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
+  #facet_wrap(~temp)+
+  labs(x = ' ', y=expression(NBES[resistance]))+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBESres1
+
+labeln <- c('2'='2 species', '4'='4 species','5'='5 species')
+NBESres2 <- all_resistance  %>%
+  group_by(temp, N,combination) %>%
+  summarise(Mean = mean(delta_ges),
+            sd = sd(delta_ges),
+            se= sd/sqrt(n()))%>%
+  ggplot(.) +
+  geom_hline(yintercept = 0)+
+  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
+  geom_point(aes( x = combination, y = Mean, color = temp, shape = temp), size = 3)+
+  geom_errorbar(aes(x= combination, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
+  facet_wrap(~N, labeller = labeller(N = labeln), scales = 'free_x')+
+  labs(x = ' ', y=expression(NBES[resistance]), color = 'Treatment', shape = 'Treatment')+
+  scale_colour_brewer(palette = "Set1")+
+  theme_bw()+
+  theme(legend.position = 'right',
+        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 12))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))
+NBESres2
+
+legend_nb<-get_legend(NBESres2)
+PlotNBES <- plot_grid( NBESres1,NBESres2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3, rel_widths = c(2/7,5/7))
+PlotNBES
+
+
+
+##cv
 NBEScv1 <- CV  %>%
   group_by(temp, N) %>%
   summarise(mean_NBES_CV = mean(NBES_CV),
-         sd_NBES_CV = sd(NBES_CV),
-         se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
+            sd_NBES_CV = sd(NBES_CV),
+            se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
   ggplot(.) +
   geom_hline(yintercept = 0)+
   geom_point(aes( x = N, y = mean_NBES_CV, color = temp, shape = temp), size = 3)+
@@ -785,7 +792,7 @@ PlotCV
 PlotNBES/PlotCV
 ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.png'), width = 14, height = 6)
 
-#### Explorative plots and analysis ####
+
 
 ### LRR Resistance ###
          

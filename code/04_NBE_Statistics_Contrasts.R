@@ -5,7 +5,7 @@
 library(tidyverse)
 
 #### data ####
-netdiv <- read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/netEffect.csv')%>%
+netdiv <-d3%>%# read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv')
   mutate(absNBE = abs(NBE))
 
 
@@ -62,7 +62,7 @@ lm1<-aov(NBE~temp*con1, netdiv)
 summary(lm1)
 TukeyHSD(lm1)
 
-# contrast 2: 2 versus 4 species
+# contrast 2: 2 versus 5 species
 
 netdiv$con2<-NA
 netdiv$con2[netdiv$N==2]<- "A"
@@ -108,7 +108,6 @@ hist(resid(aov1))
 hist(((HectorRaw$NetEffect)^2))
 
 
-hist(cuberoot(HectorRaw$NetEffect))
 dummy <- (HectorRaw$NetEffect^2)
 summary(dummy)
 qqnorm(log(HectorRaw$NetEffect^2))
