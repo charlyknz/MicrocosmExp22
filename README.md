@@ -55,20 +55,32 @@ speciesID: species-specific information
 ### NBES.csv:  Data on Net Biodiversity effect on stability
 
 combination: species combinations, see MS for abbreviations
-rep: replicate no 
+
+rep: replicate number (1-3)
+
 NBE: Net biodiversity effect 
+
 AUC.RR_exp: expected Stability 
+
 AUC.RR_obs: observed Stability
+
 N: Species richness level (ranging from 2-5)
+
 temp: temperature treatment, i.e. fluctuation, increase, increase and fluctuation 
+
+
 
   
 
 ### NBEonFunctioning.csv: Data on Net Biodiversity effect on functioning
 
 combination: species combinations, see MS for abbreviations.
-rep: replicate no 
+
+rep: replicate number (1-3)
+
 NetEffect: Net biodiversity effect on functioning
+
 N: Species richness level (ranging from 2-5)
+
 temp: temperature treatment, i.e. control, fluctuation, increase, increase and fluctuation 
   
