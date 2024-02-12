@@ -1,31 +1,16 @@
-## R Script to gather temperature data 
-
-#### required packages ####
+#### R script to plot temperature curves ####
+### required packages ###
 library(tidyverse)
 library(readxl)
 library(lubridate)
 library(hms)
 library(here)
 
-setwd("~/Desktop/Exp22/Temperature_Charly_Planktotrons_2022")
-
-## import excel files using a Loop
-directory <-  paste(getwd(),sep = '') # hier sind meine Daten
-
-#read file (from [here][1])
-file.list<- list.files(full.names = TRUE, pattern = "*.xls")
-
-df.list <- lapply(file.list, read_excel)
-df <- bind_rows(df.list, .id = "id")
-df <- filter(df, !unit %in% c(3, 4,9))
+#### Import data ####
+df <- read_csv("Data/all_temperatures.csv", locale = locale())
 str(df)
-write.csv(x = df, file = 'all_temperatures.csv')
-## ------------------------------------------------------------------------------ ##
-## ------------------------------------------------------------------------------ ##
-#### START ####
-df <- read_csv("~/Desktop/Exp22/Temperature_Charly_Planktotrons_2022/all_temperatures.csv", 
-                             locale = locale())
-str(df)
+
+
 ## data wrangling
 
 temp <- df %>%
@@ -65,9 +50,4 @@ plot <- ggplot(dataPlot, aes(x = datetime, y = actual_tempmiddle, color = treat)
   theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4))
 plot
-ggsave(plot = plot, file = here('~/Desktop/Exp22/MicrocosmExp22/output/FigSTemp_curves_exp22.tiff'), height = 12, width = 5)
-## ------------------------------------------------------------------------------ ##
-## ------------------------------------------------------------------------------ ##
-
-
-
+ggsave(plot = plot, file = here('output/FigS2_Temp_curves_exp22.png'), height = 12, width = 5)

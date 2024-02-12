@@ -6,12 +6,13 @@ library(tidyverse)
 library(readxl)
 library(MESS)
 library(here)
+library(cowplot)
 library(RColorBrewer)
 
-setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
+setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 #### import data ####
-expData<-read.csv('AllRawData_InclBV.csv') %>%
+expData<-read.csv('Data/AllRawData_InclBV.csv') %>%
   select(-X) %>%
   mutate(cellV_mm_ml=cellVolume/10^9)
 names(expData)
@@ -108,7 +109,6 @@ NBE_duo %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'bottom')
 
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonFunctioning_onefacet.png'), width = 8, height = 4)
 
 #### Netto Biodiversity Effect Mix ####
 
@@ -160,7 +160,7 @@ allNetBiodiv <- bind_rows(NBE_duo, NBE_mix)%>%
 allNetBiodiv$N <- factor(as.factor(allNetBiodiv$N), levels= c( '2','4','5'))
 
 #save df as csv
-write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
+write.csv(allNetBiodiv, file =  here('Data/NBEonFunctioning.csv'))
 
 
 ## Richness plot
@@ -222,15 +222,10 @@ plot245<- allNetBiodiv %>%
 plot245
 
 
-
-blank <- ggplot()+
-  geom_blank()+
-  theme_void() 
-
 legend_f<- get_legend(plot245)
 
 nbef <- plot_grid( NBE+theme(legend.position = 'none'),plot245+theme(legend.position = 'none'),legend_f,hjust = -0.05, labels = c('(c)', '(d)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonF.png'), width = 14, height = 4.5)
+#ggsave(plot = last_plot(), file = here('output/NBEonF.png'), width = 14, height = 4.5)
 
 
 

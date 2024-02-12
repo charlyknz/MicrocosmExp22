@@ -8,7 +8,7 @@ library(readxl)
 library(here)
 library(cowplot)
 
-setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
+#setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 #### create color palettes ####
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" ) # temp treatments
@@ -17,7 +17,7 @@ shape_values <- c(23,16, 17, 15)
 
 
 #### import species-specific biomass ####
-rawData <- read.csv('AllRawData_InclBV.csv')
+rawData <- read.csv('Data/AllRawData_InclBV.csv')
 summary(rawData)
 
 
@@ -64,7 +64,7 @@ Duoplot <- biomass %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'bottom')
 Duoplot
-ggsave(plot = Duoplot, file = here('MicrocosmExp22/output/FigS3_Duo_Biomass.png'), width = 12, height = 12)
+ggsave(plot = Duoplot, file = here('output/FigS3_Duo_Biomass.png'), width = 12, height = 12)
 
 Quattroplot <- biomass %>%
   filter(species == 'quattro') %>%
@@ -87,7 +87,6 @@ Quattroplot <- biomass %>%
   theme(legend.position = 'none')
 Quattroplot
 
-#ggsave(plot = Quattroplot, file = here('MicrocosmExp22/output/QuattroBiomass.png'), width = 12, height = 8)
 
 mixplot <- biomass %>%
   filter(!species%in%c('duo','mono', 'quattro') )%>%
@@ -111,10 +110,8 @@ mixplot <- biomass %>%
   theme(legend.position = 'bottom')
 mixplot
 
-#ggsave(plot = mixplot, file = here('MicrocosmExp22/output/MixBiomass.png'), width = 10, height = 3)
-
 plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(6.5/9, 2.5/9),labels = c('(a)', '(b)'))
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
+ggsave(plot = last_plot(), file = here('output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
 
 
 Mono <- biomass %>%
@@ -141,7 +138,6 @@ Mono <- biomass %>%
   theme(plot.margin = unit(c(0,0,0,0), "cm"))+
   theme(legend.position = 'bottomright')
 Mono
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/MonocultureBiomass.png'), width = 10, height = 3)
 
 #### sum of biomass ####
 biomass1<- rawData%>%
@@ -189,7 +185,7 @@ biomass1 %>%
   #theme(plot.margin = unit(c(0,0,0,0), "cm"))+
   theme(legend.position = 'bottom')
 
-ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig1Biomass.png'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('output/Fig1Biomass.png'), width = 15, height = 15)
 
 
 

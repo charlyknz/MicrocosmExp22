@@ -11,12 +11,12 @@ library(RColorBrewer)
 library(cowplot)
 library(patchwork)
 
-setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
+#setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 # look at the data 
 
 #### import species-specific biomass data ####
-expData<-read.csv('AllRawData_InclBV.csv') %>%
+expData<-read.csv('Data/AllRawData_InclBV.csv') %>%
   select(-X) %>%
   mutate(cellV_mm_ml = cellVolume/10^9) %>%
   select(-cellVolume)
@@ -173,11 +173,9 @@ stab.auc %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/SpeciesStabilityEffect.png'), width = 8,height = 5)
 
 
-
-# rel BV at to 
+# relative BV at to 
 all$temp[all$temp=='fluct'] <- 'Fluctuation'
 all$temp[all$temp=='inc'] <- 'Increase'
 all$temp[all$temp=='inc+fluc'] <- 'IncreaseFluctuation'
@@ -195,7 +193,6 @@ BV_t0_duo <- all %>%
   theme_bw()+
   theme(legend.position = 'none')
 BV_t0_duo
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/relBV_t0_TwoSpecies.png'), width = 8, height = 4)
 
 
 #### NBE on Stability: 4-species and 5-species Mix ####
@@ -315,10 +312,8 @@ stab.auc.mix %>%
   theme(legend.position = 'bottom')+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/deltaRR_quattroSpec_chaos.png'), width = 8,height = 5)
 
-
-# rel BV at to 
+# relative BV at to 
 allMix$combination[allMix$combination == 'ADGRT'] <- 'Mix'
 
 allMix$temp[allMix$temp=='fluct'] <- 'Fluctuation'
@@ -338,10 +333,9 @@ BV_t0_mix <- allMix %>%
   theme_bw()+
   theme(legend.position = 'none')
 BV_t0_mix
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/relBV_t0_45species.png'), width = 9, height = 4)
 
 plot_grid(BV_t0_duo, BV_t0_mix, labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/RelativeBVatT0.png'), width = 8, height = 8)
+ggsave(plot = last_plot(), file = here('output/RelativeBVatT0.png'), width = 8, height = 8)
 
 
 
@@ -360,7 +354,7 @@ d3 <- d1 %>%
 which(is.na(d3))
 
 ## save for R-Stats
-#write.csv(d3, file = here('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv'))
+write.csv(d3, file = here('Data/NBES.csv'))
 
 
 #### START plots####
@@ -421,7 +415,6 @@ p2
 
 
 nbes <- plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
-#ggsave(plot = nbes, file = here('MicrocosmExp22/output/Fig_NBES.png'), width = 14, height = 4.5)
 
 
 #### Merge NBES with NBE on Functioning ####
@@ -430,7 +423,7 @@ nbes <- plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, 
 source(here("~/Desktop/Exp22/MicrocosmExp22/code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
 
 (nbes/nbef)
-ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig3_NBE_NBES.png'), width = 14, height = 9)
+ggsave(plot = last_plot(), file = here('output/Fig3_NBE_NBES.png'), width = 14, height = 9)
 
 
 
@@ -548,7 +541,7 @@ RR1+RR2+RR4+RR5+
   plot_annotation(tag_levels = "a", tag_prefix = '(',
                   tag_sep = '', tag_suffix = ')')
 
-ggsave(plot = last_plot(), file = here('/Users/charlottekunze/Desktop/Exp22/MicrocosmExp22/output/Fig2_ObservedStab_patchwork.png'),width = 10, height = 8)
+ggsave(plot = last_plot(), file = here('output/Fig2_ObservedStab_patchwork.png'),width = 10, height = 8)
 
 
   
@@ -594,7 +587,6 @@ NBESresistance <- all_resistance  %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 NBESresistance
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_resistance.png'), width = 8, height = 4)
 
 
 #### NBES CV ####
@@ -667,334 +659,8 @@ ggplot(.) +
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 NBESCV
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_CV.png'), width = 8, height = 4)
-
-
 
 plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig_NBESmetrics_overall.png'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('output/FigS1_NBESmetrics_overall.png'), width = 8, height = 6)
 
 
-# 
-#### Explorative plots and analysis ####
-
-### multiple facets cv and resistance ###
-
-##resistance
-
-NBESres1 <- all_resistance  %>%
-  group_by(temp, N) %>%
-  summarise(Mean = mean(delta_ges),
-            sd = sd(delta_ges),
-            se= sd/sqrt(n()))%>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
-  geom_point(aes( x = N, y = Mean, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
-  #facet_wrap(~temp)+
-  labs(x = ' ', y=expression(NBES[resistance]))+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESres1
-
-labeln <- c('2'='2 species', '4'='4 species','5'='5 species')
-NBESres2 <- all_resistance  %>%
-  group_by(temp, N,combination) %>%
-  summarise(Mean = mean(delta_ges),
-            sd = sd(delta_ges),
-            se= sd/sqrt(n()))%>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  #geom_point( aes( x = N, y = delta_ges), alpha = 0.3)+
-  geom_point(aes( x = combination, y = Mean, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= combination, y = Mean, ymin = Mean-se, ymax = Mean+se, color = temp), alpha=0.8,width = 0.3)+
-  facet_wrap(~N, labeller = labeller(N = labeln), scales = 'free_x')+
-  labs(x = ' ', y=expression(NBES[resistance]), color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'right',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESres2
-
-legend_nb<-get_legend(NBESres2)
-PlotNBES <- plot_grid( NBESres1,NBESres2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3, rel_widths = c(2/7,5/7))
-PlotNBES
-
-
-
-##cv
-NBEScv1 <- CV  %>%
-  group_by(temp, N) %>%
-  summarise(mean_NBES_CV = mean(NBES_CV),
-            sd_NBES_CV = sd(NBES_CV),
-            se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  geom_point(aes( x = N, y = mean_NBES_CV, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV, color = temp), alpha=0.8,width = 0.3)+
-  #facet_wrap(~temp)+
-  labs(x = ' ', y=expression(NBES[CV]),color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'right',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBEScv1
-
-legendcv<-get_legend(NBEScv1)
-
-NBEScv2 <- CV  %>%
-  group_by(temp, N, combination) %>%
-  summarise(mean_NBES_CV = mean(NBES_CV),
-            sd_NBES_CV = sd(NBES_CV),
-            se_NBES_CV=sd_NBES_CV/sqrt(n())) %>%
-  ggplot(.) +
-  geom_hline(yintercept = 0)+
-  geom_point(aes( x = combination, y = mean_NBES_CV, color = temp, shape = temp), size = 3)+
-  geom_errorbar(aes(x= combination, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV, color = temp), alpha=0.8,width = 0.3)+
-  facet_wrap(~N,labeller = labeller(N = labeln), scales = 'free_x')+
-  labs(x = ' ', y=expression(NBES[CV]), color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBEScv2
-
-
-
-PlotCV <- plot_grid( NBEScv1+theme(legend.position = 'none'),NBEScv2+theme(legend.position = 'none'),hjust = -0.05, labels = c('(c)', '(d)'), ncol = 3, rel_widths = c(2/7,5/7))
-PlotCV
-
-PlotNBES/PlotCV
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.png'), width = 14, height = 6)
-
-
-
-### LRR Resistance ###
-         
-resistance <- treat %>%
-  filter(sampling ==3 ) %>%
-  group_by(temp, combination, species,rep) %>%
-  summarise(treat.tot = sum(cellV_mm_ml),
-            con.tot = sum(con.vol)) %>%
-  mutate(LRR = log(treat.tot/con.tot))
-
-resistance$species <- factor(as.factor(resistance$species),levels=c("mono","duo",   "quattro" ,  "MIX"))
-
-resistance$N <- NA
-resistance$N[resistance$species == 'mono']<-'1'
-resistance$N[resistance$species == 'duo']<-'2'
-resistance$N[resistance$species == 'quattro']<-'4'
-resistance$N[resistance$species == 'MIX']<-'5'
-
-resistance$temp[resistance$temp=='fluct'] <- 'Fluctuation'
-resistance$temp[resistance$temp=='inc'] <- 'Increase'
-resistance$temp[resistance$temp=='inc+fluc'] <- 'IncreaseFluctuation'
-
-ggplot(resistance, aes( x = N, y = LRR))+
-  geom_point(alpha = 0.5)+
-  geom_boxplot(alpha = 0.5)+
-  facet_wrap(~temp)+
-  theme_bw()
-#ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/LRR.png'), width = 8, height = 4)
-# 21 unique combinations x 3 treatments x 3 rep 
-
-### RR over time ###
-RR_merge <- rbind(allMix, all) %>%
-  distinct(temp, rep, sampling, combination, RR_ges_obs, RR_ges_exp, delta_ges) %>%
-  group_by(temp, sampling, combination)%>%
-  summarise(mean.delta.RR = mean(delta_ges, na.rm = T),
-            sd = mean(delta_ges),
-            se = sd/sqrt(n())) %>%
-  mutate(S = str_length(combination)) %>%
-  mutate(S = paste(ifelse(S == 3, 5, S))) %>%
-  arrange(desc(S))
-RR_merge$combination <- factor(as.factor(RR_merge$combination) , 
-                                  levels = c("AD" ,"AG" ,"AR","AT" ,"DG","DR","DT", "GR" , "GT" ,"RT",
-                                             "ADGR" ,"ADGT", "ADRT" ,"AGRT", "DGRT" ,"Mix"))
-ggplot(RR_merge, aes(x = sampling, y = mean.delta.RR, color = temp, shape = temp))+
-  geom_hline(yintercept = 0, color ='black')+
-  geom_line(linetype = 'dashed')+
-  geom_errorbar(aes(ymin = mean.delta.RR-se, ymax = mean.delta.RR + se), width = .8)+
-  geom_point()+
-  facet_wrap(~combination, ncol = 5)+
-  theme_bw()
-
-##plot 2
-RR_merge1 <- rbind(allMix, all) %>%
-  distinct(temp, rep, sampling, combination, RR_ges_obs, RR_ges_exp, delta_ges) %>%
-  mutate(S = str_length(combination)) %>%
-  mutate(S = paste(ifelse(S == 3, 5, S))) %>%
-  arrange(desc(S))%>%
-  group_by(temp, sampling,S)%>%
-  summarise(mean.delta.RR = mean(delta_ges, na.rm = T),
-            sd = mean(delta_ges),
-            se = sd/sqrt(n())) 
-
-ggplot(RR_merge1, aes(x = sampling, y = mean.delta.RR, color = temp, shape = temp))+
-  geom_hline(yintercept = 0, color ='black')+
-  geom_line(linetype = 'dashed')+
-  geom_errorbar(aes(ymin = mean.delta.RR-se, ymax = mean.delta.RR + se), width = .8)+
-  geom_point()+
-  facet_wrap(~S)+
-  theme_bw()
-
-
-### Plots Missing species ###
-
-d3$combination[d3$combination == 'ADGR'] <- 'T'
-d3$combination[d3$combination == 'ADGT'] <- 'R'
-d3$combination[d3$combination == 'DGRT'] <- 'A'
-d3$combination[d3$combination == 'AGRT'] <- 'D'
-d3$combination[d3$combination == 'ADRT'] <- 'G'
-d3$combination[d3$combination == 'none'] <- 'Xnone'
-
-d3%>%
-  group_by(N, temp,combination) %>%
-  summarise(mean.total.DRR = mean(NBE, na.rm = T),
-            sd = sd(NBE,na.rm = T),
-            se = sd/sqrt(n()))%>%
-  mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
-  filter(N != 2) %>%
-  ggplot(., aes(x = combination, y = mean.total.DRR,color = temp, shape = temp))+
-  geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_point(size = 2.5, alpha = 0.8)+
-  geom_errorbar(aes(ymin = mean.total.DRR - se, ymax = mean.total.DRR +se), width = .3)+
-  labs(x = 'Missing', y = 'Net Biodiversity Effect on Stability', color = 'Treatment')+
-  # scale_x_continuous(limits = c(0.5,5.5), breaks = c(2,4,5))+
-  scale_colour_brewer(palette = "Set1")+
-  facet_grid(~temp, scales = 'free_x')+
-  theme_bw()+
-  theme(legend.position = 'none',
-        panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  face = "bold",colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-#ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/DeleteMe.png'),width = 9, height =3)
-
-
-### SGC data ###
-
-str(MonoData)
-
-duos <- MonoData %>%
-  select(-mean, -sd, -se) %>%
-  filter(N == '2') %>%
-  select(-N)%>%
-  rename(obs2Instab = AUC.RR_obs) %>%
-  mutate(A2 = ifelse(combination == 'AT', 'T', ifelse(combination == 'AR', 'R', ifelse(combination == 'AG', 'G', ifelse(combination == 'AD', 'D',
-                                                                                                                        ifelse(combination == 'DG', 'G', ifelse(combination == 'DR', 'R', ifelse(combination == 'DT', 'T', 
-                                                                                                                                                                                                 ifelse(combination == 'GR', 'R', ifelse(combination == 'GT', 'T', ifelse(combination == 'RT', 'T'))))))))) )) %>%
-  mutate(A1 = ifelse(combination == 'AT', 'A', ifelse(combination == 'AR', 'A', ifelse(combination == 'AG', 'A', ifelse(combination == 'AD', 'A',
-                                                                                                                        ifelse(combination == 'DG', 'D', ifelse(combination == 'DR', 'D', ifelse(combination == 'DT', 'D', 
-                                                                                                                                                                                                 ifelse(combination == 'GR', 'G', ifelse(combination == 'GT', 'G', ifelse(combination == 'RT', 'R'))))))))) )) %>%
-  group_by(combination, A1, A2, temp) %>%
-  summarise(mean2stab = mean(obs2Instab))
-unique(duos$A1)
-str(MonoData)
-names(duos)
-
-
-monos <- MonoData %>%
-  ungroup()%>%
-  filter(N %in% c(1)) %>%
-  select(-mean, -sd, -se, -label,-combination, -N) %>%
-  mutate(spec = speciesID, 
-         speciesID = paste(ifelse(speciesID == 'Asterio', 'A', ifelse(speciesID == 'DityCux', 'D', ifelse(speciesID == 'Guido', 'G',
-                                                                                                          ifelse(speciesID == 'Rhizo', 'R', 'T')))))) %>%
-  group_by(temp, speciesID, spec) %>%
-  summarise(mean.mono = mean(AUC.RR_obs, na.rm = T))
-
-
-### single df for each species ###
-Asterio<- duos %>%
-  filter(A1 == 'A'| A2 == 'A')%>%  
-  mutate(speciesID = ifelse(A2 != A1, A2, A1),
-         present = paste('A')) %>%
-  left_join(., monos, by = c('speciesID', 'temp'))  %>%
-  mutate(sp2_1 = mean2stab - mean.mono) %>%
-  group_by(temp, present) %>%
-  summarise(mean.presence = mean(sp2_1),
-            sd = sd(sp2_1),
-            se.presence = sd/sqrt(n()))
-
-Dity<- duos %>%
-  filter(A1 == 'D'| A2 == 'D')%>%  
-  mutate(speciesID = ifelse(A2 == 'D', A1, A2),
-         present = paste('D')) %>%
-  left_join(., monos, by = c('speciesID', 'temp')) %>%
-  mutate(sp2_1 = mean2stab - mean.mono) %>%
-  group_by(temp, present) %>%
-  summarise(mean.presence = mean(sp2_1),
-            sd = sd(sp2_1),
-            se.presence = sd/sqrt(n()))
-
-Guido<- duos %>%
-  filter(A1 == 'G'| A2 == 'G')%>%  
-  mutate(speciesID = ifelse(A2 == 'G', A1, A2),
-         present = paste('G')) %>%
-  left_join(., monos, by = c('speciesID', 'temp')) %>%
-  mutate(sp2_1 = mean2stab - mean.mono) %>%
-  group_by(temp, present) %>%
-  summarise(mean.presence = mean(sp2_1),
-            sd = sd(sp2_1),
-            se.presence = sd/sqrt(n()))
-
-Rhizo<- duos %>%
-  filter(A1 == 'R'| A2 == 'R')%>%  
-  mutate(speciesID = ifelse(A2 == 'R', A1, A2),
-         present = paste('R')) %>%
-  left_join(., monos, by = c('speciesID', 'temp')) %>%
-  mutate(sp2_1 = mean2stab - mean.mono) %>%
-  group_by(temp, present) %>%
-  summarise(mean.presence = mean(sp2_1),
-            sd = sd(sp2_1),
-            se.presence = sd/sqrt(n()))
-
-Thala<- duos %>%
-  filter(A1 == 'T'| A2 == 'T')%>%  
-  mutate(speciesID = ifelse(A2 == 'T', A1, A2),
-         present = paste('T')) %>%
-  left_join(., monos, by = c('speciesID', 'temp')) %>%
-  mutate(sp2_1 = mean2stab - mean.mono) %>%
-  group_by(temp, present) %>%
-  summarise(mean.presence = mean(sp2_1),
-            sd = sd(sp2_1),
-            se.presence = sd/sqrt(n()))
-
-allSpecies <- bind_rows(Asterio, Dity, Guido, Rhizo, Thala)
-#write.csv(allSpecies, file = here('MicrocosmExp22/Data/allSpecies_MeanPresence2_1.csv'))

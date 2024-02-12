@@ -5,6 +5,8 @@
 library(tidyverse)
 library(ggpubr)
 
+setwd("~/Desktop/Exp22/MicrocosmExp22")
+
 #### data NBES ####
 
 # run R scripts 
@@ -14,7 +16,7 @@ netdiv <-d3%>%
   mutate(absNBE = abs(NBE))
 
 # or import as csv
-#netdiv <- # read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv')
+netdiv <-  read.csv('Data/NBES.csv')
 
 ## check data 
 summary(netdiv)
@@ -107,9 +109,9 @@ HectorRaw <- allNetBiodiv
 
 #or
 #import as csv
-#HectorRaw <- read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBEonFunctioning.csv') %>%
-#  select(-X)
-#str(HectorRaw)
+HectorRaw <- read.csv('Data/NBEonFunctioning.csv') %>%
+  select(-X)
+str(HectorRaw)
 
 HectorRaw$combination<-as.factor(HectorRaw$combination)
 summary(HectorRaw)

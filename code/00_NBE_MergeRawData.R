@@ -1,4 +1,4 @@
-#### R script to analyse counting data for Microcosm Exp 22####
+#### R script to transform counting data for Microcosm Exp 22####
 #by Charlotte Kunze 28.03.22
 
 ## load packages
@@ -6,7 +6,10 @@ library(tidyverse)
 library(readxl)
 library(scales)
 library(here)
-#### import data ####
+
+#### Biovolume ####
+
+##### import data #####
 counting_ID_sampling1 <- read_excel("MicrocosmExp22/Data/counting_ID.xlsx", 
                                      sheet = "S0") %>%
   select(c(1:12)) %>%
@@ -34,7 +37,7 @@ counting_ID_sampling15 <- read_excel("MicrocosmExp22/Data/counting_ID.xlsx",
 
 str(counting_ID_sampling15)
 
-#### import meta data ####
+##### import meta data #####
 ID_herma <- read_excel("MicrocosmExp22/Data/counting_ID_sampling9.xlsx",  sheet = "overview") %>%
   select(-plate, -V_ml, - magn, -sampling) 
 ID_herma[ ID_herma == 'Asterio' ] <- 'A'
@@ -52,7 +55,7 @@ counting_ID_sampling<- rbind(counting_ID_sampling1, counting_ID_sampling3,counti
 
 counting_ID_sampling <-left_join(counting_ID_sampling, ID_herma, by = c('no', 'temp', 'nut', 'rep', 'species'))
 
-#### calculate cells_ml ####
+##### calculate cells_ml #####
 cells_mL_calculation_Utermo_hl_05chamber <- read_excel("MicrocosmExp22/Data/cells_mL_calculation_Utermöhl_05chamber.xlsx")
 str(cells_mL_calculation_Utermo_hl_05chamber)
 data <- left_join(counting_ID_sampling,cells_mL_calculation_Utermo_hl_05chamber, by = c('magn', 'V_ml'))
@@ -64,7 +67,7 @@ data <- data %>%
 names(data)
 
 
-#### BioVolume ####
+##### upload Cell Measurements for BioVolume calculation #####
 
 BioVolume_exp22 <- read_excel("MicrocosmExp22/Data/BioVolume_exp22.xlsx",sheet = "Sheet1") %>%
   rename(speciesID = species) %>%
@@ -82,6 +85,31 @@ AllData <- data%>%
   select(no, speciesID,species, combination, temp, rep, sampling, cellVolume)
 summary(AllData)
 
-#### create csv to work with ####
+### create csv to work with ###
 write.csv(AllData, file = 'MicrocosmExp22/Data/AllRawData_InclBV.csv')
 
+
+#### Temperature data ####
+
+## R Script to gather temperature data 
+
+### required packages ###
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(hms)
+library(here)
+
+setwd("~/Desktop/Exp22/Temperature_Charly_Planktotrons_2022")
+
+## import excel files using a Loop
+directory <-  paste(getwd(),sep = '') # hier sind meine Daten
+
+#read file (from [here][1])
+file.list<- list.files(full.names = TRUE, pattern = "*.xls")
+
+df.list <- lapply(file.list, read_excel)
+df <- bind_rows(df.list, .id = "id")
+df <- filter(df, !unit %in% c(3, 4,9))
+str(df)
+write.csv(x = df, file = here('~/Desktop/Exp22/MicrocosmExp22/all_temperatures.csv'))
