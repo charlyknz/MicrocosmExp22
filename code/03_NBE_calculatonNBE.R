@@ -345,18 +345,17 @@ ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/RelativeBVatT0.png
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
 
 d1 <- stab.auc %>%
-  select(combination, speciesID, rep,temp,NBE, AUC.RR_exp,AUC.RR_obs, AUC.RR_mono)
+  distinct(combination, rep,temp,NBE, AUC.RR_exp,AUC.RR_obs)
 d2 <- stab.auc.mix %>%
-  select(combination, speciesID, rep,temp,NBE,AUC.RR_exp,AUC.RR_obs)
+  distinct(combination, rep,temp,NBE,AUC.RR_exp,AUC.RR_obs)
 d2$combination[d2$combination=='Mix']<-'ADGRT'
 
 d3 <- d1 %>%
-  select(-AUC.RR_mono)%>%
   bind_rows(., d2) %>%
   mutate(N = str_length(combination)  )  
 which(is.na(d3))
 
-#write.csv(d3, file = here('MicrocosmExp22/Data/netEffect.csv'))
+write.csv(d3, file = here('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv'))
 
 
 #### START plots####
@@ -428,18 +427,20 @@ nbes <- plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, 
 source(here("~/Desktop/Exp22/MicrocosmExp22/code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
 
 (nbes/nbef)
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig3_NBE_NBES.png'), width = 14, height = 9)
+ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig3_NBE_NBES.png'), width = 14, height = 9)
 
 
 
 #### Figure AUC.RR ####
 names(d1)
-MonoData <- d1%>%
-  distinct( speciesID, temp,AUC.RR_mono) %>%
+MonoData <- stab.auc %>%
+  ungroup()%>%
+  distinct( speciesID, temp,rep,AUC.RR_mono) %>%
   rename(AUC.RR_obs= AUC.RR_mono)%>%
   mutate(combination = paste(ifelse(speciesID == 'Asterio', 'A', ifelse(speciesID == 'DityCux', 'D', ifelse(speciesID == 'Guido', 'G', ifelse(speciesID == 'Rhizo', 'R', 'T')))))) %>%
-  bind_rows(., select(d1,combination, speciesID,temp, AUC.RR_obs)) %>%
-  bind_rows(., select(d2,combination, speciesID,temp, AUC.RR_obs)) %>%
+  select(-speciesID) %>%
+  bind_rows(., select(d1,combination,temp, rep,AUC.RR_obs)) %>%
+  bind_rows(., select(d2 ,combination,temp, rep,AUC.RR_obs)) %>%
   mutate(N = str_length(combination),
          N = paste(ifelse(N == 3, 5, N)),
          label = paste(ifelse(N == 1, 'Monoculture', ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species')))))%>%
@@ -552,7 +553,9 @@ ggsave(plot = last_plot(), file = here('/Users/charlottekunze/Desktop/Exp22/Micr
 resistance_duo 
 resistance_mix
 
-all_resistance <- rbind(resistance_duo, resistance_mix)
+all_resistance <- rbind(resistance_duo, resistance_mix) %>%
+  ungroup()%>%
+  distinct(temp, rep, delta_ges, species)
 
 all_resistance$N <- NA
 all_resistance$N[all_resistance$species == 'mono']<-'1'
@@ -666,7 +669,7 @@ ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBES_CV.png'), wid
 
 
 plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics_overall.png'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig_NBESmetrics_overall.png'), width = 8, height = 6)
 
 
 # 

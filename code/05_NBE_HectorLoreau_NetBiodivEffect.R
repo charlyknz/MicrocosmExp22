@@ -153,11 +153,12 @@ NBE_mix$combination[NBE_mix$combination == 'ADGRT'] <- '5spec'
 #### Plots NBE on Functioning ####
 
 allNetBiodiv <- bind_rows(NBE_duo, NBE_mix)%>%
-  mutate(N = as.factor(str_length(combination))  )
+  mutate(N = as.factor(str_length(combination))  ) %>%
+  distinct(combination, temp, rep, NetEffect, N)
 
 allNetBiodiv$N <- factor(as.factor(allNetBiodiv$N), levels= c( '2','4','5'))
 
-#write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
+write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
 NBE<-allNetBiodiv%>%
   group_by( temp, N) %>%
   mutate(transNet = NetEffect/10^9)%>%
