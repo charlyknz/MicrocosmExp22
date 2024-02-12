@@ -334,7 +334,7 @@ BV_t0_mix <- allMix %>%
   theme(legend.position = 'none')
 BV_t0_mix
 
-plot_grid(BV_t0_duo, BV_t0_mix, labels = c('(a)', '(b)'), ncol = 1)
+cowplot::plot_grid(BV_t0_duo, BV_t0_mix, labels = c('(a)', '(b)'), ncol = 1)
 ggsave(plot = last_plot(), file = here('output/RelativeBVatT0.png'), width = 8, height = 8)
 
 
@@ -414,7 +414,7 @@ p2 <- d3%>%
 p2
 
 
-nbes <- plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
+nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
 
 
 #### Merge NBES with NBE on Functioning ####
@@ -660,7 +660,7 @@ ggplot(.) +
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 NBESCV
 
-plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
+cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
 ggsave(plot = last_plot(), file = here('output/FigS1_NBESmetrics_overall.png'), width = 8, height = 6)
 
 

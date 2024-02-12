@@ -4,19 +4,20 @@
 
 library(tidyverse)
 library(ggpubr)
+library(sjPlot)
 
-setwd("~/Desktop/Exp22/MicrocosmExp22")
+#setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 #### data NBES ####
 
 # run R scripts 
-source(here("~/Desktop/Exp22/MicrocosmExp22/code/03_NBE_calculatonNBE.R"))
+source(here("code/03_NBES_calculation.R"))
 str(d3)
 netdiv <-d3%>%
   mutate(absNBE = abs(NBE))
 
 # or import as csv
-netdiv <-  read.csv('Data/NBES.csv')
+#netdiv <-  read.csv('Data/NBES.csv')
 
 ## check data 
 summary(netdiv)
@@ -30,6 +31,7 @@ netdiv$combination<-as.factor(netdiv$combination)
 aov1<-aov(NBE~temp*combination, netdiv)
 summary(aov1)
 TukeyHSD(aov1)
+tab_model(aov1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBES_aov.doc"))
 
 ggplot(netdiv, aes(y = NBE, x = as.factor(temp), fill=as.factor(N)))+
   geom_boxplot()
@@ -41,8 +43,10 @@ qqline(netdiv$NBE)
 
 #### NBES: T-test ####
 #test against zero
-t.test(netdiv$NBE, mu = 0, alternative = "two.sided")
+test1 <- t.test(netdiv$NBE, mu = 0, alternative = "two.sided")
+test1
 
+tab_model(test1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBES_t-test.doc"))
 
 #### NBES: Presence/absence of species ~NBES ####
 # explore the interaction of temperature and species combinations
@@ -61,6 +65,7 @@ fluct <- combiEffect %>% filter(temp == 'Fluctuation')
 aov2<-aov(NBE~A+D+G+R+T, fluct)
 summary(aov2)
 TukeyHSD(aov2)
+
 
 incfluct <- combiEffect %>% filter(temp == 'IncreaseFluctuation')
 aov3<-aov(NBE~A+D+G+R+T, incfluct)
@@ -100,7 +105,6 @@ netdiv$con3[netdiv$N==5]<-"B"
 lm3<-aov(NBE~temp*con3, netdiv)
 summary(lm3)
 
-
 #### data NBE Functioning ####
 
 source(here("~/Desktop/Exp22/MicrocosmExp22/code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
@@ -109,8 +113,8 @@ HectorRaw <- allNetBiodiv
 
 #or
 #import as csv
-HectorRaw <- read.csv('Data/NBEonFunctioning.csv') %>%
-  select(-X)
+#HectorRaw <- read.csv('Data/NBEonFunctioning.csv') %>%
+#  select(-X)
 str(HectorRaw)
 
 HectorRaw$combination<-as.factor(HectorRaw$combination)
@@ -120,6 +124,8 @@ summary(HectorRaw)
 aov1<-aov(NetEffect~temp*combination, HectorRaw)
 summary(aov1)
 TukeyHSD(aov1)
+tab_model(aov1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBEonF_aov.doc"))
+
 
 ggplot(HectorRaw, aes(y = NetEffect, x = as.factor(temp), fill=as.factor(N)))+
   geom_boxplot()
@@ -135,7 +141,9 @@ qqline(HectorRaw$NetEffect)
 
 #### NBE on F: T-Test ####
 #test against zero
-t.test(HectorRaw$NetEffect, mu = 0, alternative = "two.sided")
+test2<-t.test(HectorRaw$NetEffect, mu = 0, alternative = "two.sided")
+test2
+tab_model(test2, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBEonF_t-test.doc"))
 
 
 #### NBES - NBE on F: Correlation ####
@@ -145,4 +153,4 @@ Corr.data <- netdiv %>%
   left_join(.,HectorRaw, by = c('combination', 'temp', 'rep', 'N'))
 
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')
-ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Correlation_NBE_NBES.png'))
+ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.png'))

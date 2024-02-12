@@ -224,7 +224,13 @@ plot245
 
 legend_f<- get_legend(plot245)
 
-nbef <- plot_grid( NBE+theme(legend.position = 'none'),plot245+theme(legend.position = 'none'),legend_f,hjust = -0.05, labels = c('(c)', '(d)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
+nbef <- cowplot::plot_grid( NBE+theme(legend.position = 'none'),
+                   plot245+theme(legend.position = 'none'),
+                   legend_f,
+                   hjust = -0.05, 
+                   ncol = 3,
+                   labels = c('(c)', '(d)'), 
+                   rel_widths = c( 2/7,4/7,1/7))
 #ggsave(plot = last_plot(), file = here('output/NBEonF.png'), width = 14, height = 4.5)
 
 

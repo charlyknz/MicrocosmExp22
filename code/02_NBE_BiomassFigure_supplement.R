@@ -150,7 +150,7 @@ biomass1<- rawData%>%
             seV = sdV/sqrt(n()))
 
 
-brewer.pal(n = 8, name = "Set1")
+#brewer.pal(n = 8, name = "Set1")
 biomass1$temp[biomass1$temp=='CS'] <- 'Constant'
 biomass1$temp[biomass1$temp=='fluct'] <- 'Fluctuation'
 biomass1$temp[biomass1$temp=='inc'] <- 'Increase'
