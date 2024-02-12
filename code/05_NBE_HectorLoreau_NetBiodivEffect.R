@@ -12,7 +12,8 @@ setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
 
 #### import data ####
 expData<-read.csv('AllRawData_InclBV.csv') %>%
-  select(-X)
+  select(-X) %>%
+  mutate(cellV_mm_ml=cellVolume/10^9)
 names(expData)
 
 #### colors and shapes ####
@@ -33,9 +34,9 @@ shape_values <- c(23,16, 17, 15)
 RelBV_t0_ <- expData %>%
   filter(sampling == 1) %>%
   group_by(combination, temp, rep) %>%
-  mutate(sum = sum(cellVolume, na.rm = T)) %>%
+  mutate(sum = sum(cellV_mm_ml, na.rm = T)) %>%
   ungroup() %>%
-  mutate(relBV = cellVolume/sum) %>%
+  mutate(relBV = cellV_mm_ml/sum) %>%
   select(combination, temp, speciesID, rep, relBV)
 names(RelBV_t0_)
 
@@ -45,7 +46,7 @@ names(RelBV_t0_)
 counts_duo_tmax_ <- expData %>%
   filter(sampling == 15) %>%
   filter(species == 'duo') %>%
-  rename(Yoi = cellVolume)%>%
+  rename(Yoi = cellV_mm_ml)%>%
   select(combination, temp,rep, speciesID, Yoi)
 names(counts_duo_tmax_)
 
@@ -54,7 +55,7 @@ names(counts_duo_tmax_)
 counts_mono_tmax_ <- expData %>%
   filter(sampling == 15) %>%
   filter(species == 'mono') %>%
-  rename(Mi = cellVolume) %>%
+  rename(Mi = cellV_mm_ml) %>%
   select( temp, speciesID, rep,Mi)
 names(counts_mono_tmax_)
 # NBE
@@ -116,7 +117,7 @@ ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/NBEonFunctioning_o
 counts_tmax <- expData %>%
   filter(sampling == 15) %>%
   filter(species%in% c('quattro', 'MIX')) %>%
-  rename(Yoi = cellVolume)%>%
+  rename(Yoi = cellV_mm_ml)%>%
   select(combination, temp,rep, speciesID, Yoi)
 names(counts_tmax)
 
@@ -158,18 +159,22 @@ allNetBiodiv <- bind_rows(NBE_duo, NBE_mix)%>%
 
 allNetBiodiv$N <- factor(as.factor(allNetBiodiv$N), levels= c( '2','4','5'))
 
+#save df as csv
 write.csv(allNetBiodiv, file =  'NBEonFunctioning.csv')
+
+
+## Richness plot
+
 NBE<-allNetBiodiv%>%
   group_by( temp, N) %>%
-  mutate(transNet = NetEffect/10^9)%>%
-  summarise(mean.effect = mean(transNet, na.rm = T),
-            sd.effect = sd(transNet,na.rm = T),
+  summarise(mean.effect = mean(NetEffect, na.rm = T),
+            sd.effect = sd(NetEffect,na.rm = T),
             se.effect = sd.effect/sqrt(n()))%>%
   ggplot(., aes(x = N, y = mean.effect,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .2, alpha = .8 )+
   geom_point(size = 3, alpha = 1)+
-  labs(x = 'Species Combinations', y = expression(Net~Biodiversity~Effect~x~10^9), color = 'Treatment', shape = 'Treatment')+
+  labs(x = 'Species Richness', y = expression(Net~Biodiversity~Effect~on~Functioning), color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
   theme_bw()+
@@ -185,7 +190,7 @@ NBE
 
 
 
-### combinations ###
+## Combinations plot 
 
 labels_plot245 <- c( '2'='2 species','4'='4 species','5'='5 species')
 
@@ -193,15 +198,14 @@ allNetBiodiv$combination[allNetBiodiv$combination == '5spec'] <- 'ADGRT'
 
 plot245<- allNetBiodiv %>%
   group_by( combination, temp, N) %>%
-  mutate(transNet = NetEffect/10^9)%>%
-  summarise(mean.effect = mean(transNet, na.rm = T),
-            sd.effect = sd(transNet,na.rm = T),
+  summarise(mean.effect = mean(NetEffect, na.rm = T),
+            sd.effect = sd(NetEffect,na.rm = T),
             se.effect = sd.effect/sqrt(n()))%>%
   ggplot(., aes(x = combination, y = mean.effect,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .7 )+
   geom_point(size = 2.5, alpha = 0.9)+
-  labs(x = 'Species Combinations', y = expression(Net~Biodiversity~Effect~x~10^9), color = 'Treatment', shape = 'Treatment')+
+  labs(x = 'Species Combination', y = expression(Net~Biodiversity~Effect~on~Functioning), color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
   facet_wrap(~N, scales = 'free_x', labeller = labeller(N = labels_plot245))+

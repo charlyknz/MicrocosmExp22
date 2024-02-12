@@ -17,7 +17,10 @@ setwd("~/Desktop/Exp22/MicrocosmExp22/Data")
 
 #### import species-specific biomass data ####
 expData<-read.csv('AllRawData_InclBV.csv') %>%
-  select(-X)
+  select(-X) %>%
+  mutate(cellV_mm_ml = cellVolume/10^9) %>%
+  select(-cellVolume)
+
 names(expData)
 str(expData)
 which(is.na(expData$cells_ml))
@@ -28,7 +31,7 @@ control_stab <- expData %>%
   filter(temp == 'CS') %>%
   select(-no)%>%
   group_by(combination, sampling, species,speciesID ) %>%
-  summarise(con.vol = mean(cellVolume, na.rm = T)) 
+  summarise(con.vol = mean(cellV_mm_ml, na.rm = T)) 
 
 #treatment data 
 treat <- expData %>%
@@ -41,9 +44,9 @@ treat <- expData %>%
 RelBV_t0_ <- treat %>%
   filter(sampling == 1) %>%
   group_by(combination, temp, rep) %>%
-  mutate(sum = sum(cellVolume, na.rm = T)) %>%
+  mutate(sum = sum(cellV_mm_ml, na.rm = T)) %>%
   ungroup() %>%
-  mutate(relBV = cellVolume/sum) %>%
+  mutate(relBV = cellV_mm_ml/sum) %>%
   select(combination, temp, speciesID, rep, relBV)
 names(RelBV_t0_)
 
@@ -57,14 +60,14 @@ mono <- treat %>%
   filter(species == 'mono' ) %>%
   select(-species) %>%
   filter(temp != 'CS') %>%
-  rename(Mono_T = cellVolume)%>%
+  rename(Mono_T = cellV_mm_ml)%>%
   rename(Mono_C = con.vol)
 
 # Two species Mix 
 duo <- treat %>%
   filter(species == 'duo') %>%
   group_by(speciesID,temp, sampling, combination) %>%
-  rename(Mix_T = cellVolume) %>%
+  rename(Mix_T = cellV_mm_ml) %>%
   rename(Mix_C = con.vol) %>%
   ungroup() 
 
@@ -107,6 +110,7 @@ ggplot(subset(all, sampling == 1),aes( x = combination, y  = delta_ges))+
 
 ##### AUC #####
 stab.auc <- tibble()
+names(all)
 
 USI <- unique(all$USI)
 for(i in 1:length(USI)){
@@ -212,7 +216,7 @@ mix_con <- control_stab %>%
 str(mix_con)
 
 mix_all <- mix %>%
-  rename(Mix_T = cellVolume) %>%
+  rename(Mix_T = cellV_mm_ml) %>%
   left_join(., mix_con, by = c("speciesID", "species","sampling","combination"))
 
 
@@ -222,9 +226,9 @@ relBVt0 <- treat %>%
   filter(species %in% c('MIX', 'quattro')) %>%
   filter(sampling == 1) %>%
   group_by( combination, temp, rep) %>%
-  mutate(sum = sum(cellVolume, na.rm = T)) %>%
+  mutate(sum = sum(cellV_mm_ml, na.rm = T)) %>%
   ungroup() %>%
-  mutate(relBV = cellVolume/sum) %>%
+  mutate(relBV = cellV_mm_ml/sum) %>%
   select(combination, temp, speciesID, rep, relBV)
 
 allMix <- mono %>%
@@ -355,13 +359,12 @@ d3 <- d1 %>%
   mutate(N = str_length(combination)  )  
 which(is.na(d3))
 
-write.csv(d3, file = here('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv'))
+## save for R-Stats
+#write.csv(d3, file = here('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv'))
 
 
 #### START plots####
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
-
-#d3 <- read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/netEffect.csv')
 
 
 #### NBES plot####
@@ -376,7 +379,7 @@ p1<-d3%>%
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_point(size = 2.5, alpha = 0.9)+
   geom_errorbar(aes(ymin = mean.total.DRR - se, ymax = mean.total.DRR +se), width = .3, alpha = .7)+
-  labs(x = 'Combination', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
+  labs(x = 'Species Combination', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
   # scale_x_continuous(limits = c(0.5,5.5), breaks = c(2,4,5))+
   scale_colour_brewer(palette = "Set1")+
   facet_grid(~label, scales = 'free')+
@@ -802,7 +805,7 @@ ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig_NBESmetrics.pn
 resistance <- treat %>%
   filter(sampling ==3 ) %>%
   group_by(temp, combination, species,rep) %>%
-  summarise(treat.tot = sum(cellVolume),
+  summarise(treat.tot = sum(cellV_mm_ml),
             con.tot = sum(con.vol)) %>%
   mutate(LRR = log(treat.tot/con.tot))
 

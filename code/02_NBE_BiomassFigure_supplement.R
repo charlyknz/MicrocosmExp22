@@ -25,9 +25,9 @@ biomass<- rawData%>%
   mutate(day = sampling * 2,
          day = as.numeric(paste(ifelse(sampling == 1, 1, sampling*2))))%>%
   group_by( species,combination, speciesID, temp, day) %>%
-  mutate(transV = cellVolume/10^9)%>%
-  summarise(meanV = mean(transV, na.rm = T),
-            sdV = sd(transV, na.rm = T),
+  mutate(cellV_mm_ml = cellVolume/10^9)%>%
+  summarise(meanV = mean(cellV_mm_ml, na.rm = T),
+            sdV = sd(cellV_mm_ml, na.rm = T),
             seV = sdV/sqrt(n()))
 
 biomass$temp[biomass$temp=='CS'] <- 'Constant'
@@ -50,7 +50,7 @@ Duoplot <- biomass %>%
   geom_line(alpha = 0.8, linetype = 'dashed')+
   geom_point(alpha = 0.8)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
-  labs(y =  expression(Total~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
+  labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
   facet_grid(~combination~temp, scales = 'free')+
   scale_colour_manual(values = cbbPalette)+
   theme_bw()+
@@ -72,7 +72,7 @@ Quattroplot <- biomass %>%
   geom_line(alpha = 0.8, linetype = 'dashed')+
   geom_point(alpha = 0.8)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
-  labs(y =  expression(Total~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature')+
+  labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature')+
   facet_grid(~combination~temp, scales = 'free')+
   scale_colour_manual(values = cbbPalette)+
   theme_bw()+
@@ -95,7 +95,7 @@ mixplot <- biomass %>%
   geom_line(alpha = 0.8, linetype = 'dashed')+
   geom_point(alpha = 0.8)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
-  labs(y =  expression(Total~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
+  labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
   facet_grid(~combination~temp, scales = 'free_y')+
   scale_colour_manual(values = cbbPalette)+
  # scale_x_continuous(limits = c(0,16), breaks = c(1,3,6,9,12,15))+
@@ -123,7 +123,7 @@ Mono <- biomass %>%
   geom_line(alpha = 0.8, linetype = 'dashed')+
   geom_point(alpha = 0.8)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
-  labs(y =  expression(Total~BioV~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
+  labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
   facet_wrap(~speciesID,nrow = 1, scales = 'free_y')+
   scale_shape_manual(values = shape_values)+
   scale_colour_manual(values = tempPalette)+
@@ -148,9 +148,9 @@ biomass1<- rawData%>%
   mutate(day = sampling * 2,
          day = as.numeric(paste(ifelse(sampling == 1, 1, sampling*2))))%>%
   group_by(species, combination, temp, day) %>%
-  mutate(transV = cellVolume/10^9)%>%
-  summarise(meanV = sum(transV, na.rm = T),
-            sdV = sd(transV, na.rm = T),
+  mutate(cellV_mm_ml = cellVolume/10^9)%>%
+  summarise(meanV = sum(cellV_mm_ml, na.rm = T),
+            sdV = sd(cellV_mm_ml, na.rm = T),
             seV = sdV/sqrt(n()))
 
 
@@ -172,7 +172,7 @@ biomass1 %>%
   geom_line(alpha = 0.8, linetype = 'dashed')+
   geom_point(alpha = 0.8)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
-  labs(y =  expression(Total~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
+  labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
   facet_wrap(~combination, ncol = 5, scales = 'free')+
   scale_colour_manual(values = tempPalette)+
   scale_shape_manual(values = shape_values)+
@@ -189,7 +189,7 @@ biomass1 %>%
   #theme(plot.margin = unit(c(0,0,0,0), "cm"))+
   theme(legend.position = 'bottom')
 
-ggsave(plot = last_plot(), file = here('MicrocosmExp22/output/Fig1Biomass.png'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('~/Desktop/Exp22/MicrocosmExp22/output/Fig1Biomass.png'), width = 15, height = 15)
 
 
 

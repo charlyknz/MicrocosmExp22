@@ -5,14 +5,22 @@
 library(tidyverse)
 library(ggpubr)
 
-#### data ####
-netdiv <-d3%>%# read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv')
+#### data NBES ####
+
+# run R scripts 
+source(here("~/Desktop/Exp22/MicrocosmExp22/code/03_NBE_calculatonNBE.R"))
+str(d3)
+netdiv <-d3%>%
   mutate(absNBE = abs(NBE))
 
+# or import as csv
+#netdiv <- # read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBES.csv')
 
+## check data 
 summary(netdiv)
 names(netdiv)
 
+# combination as factor for analysis
 netdiv$combination<-as.factor(netdiv$combination)
 
 
@@ -25,8 +33,9 @@ ggplot(netdiv, aes(y = NBE, x = as.factor(temp), fill=as.factor(N)))+
   geom_boxplot()
 
 # test for normality
-fligner.test(NBE~interaction(temp,combination), netdiv)
-
+hist(netdiv$NBE)
+qqnorm(netdiv$NBE)
+qqline(netdiv$NBE)
 
 #### NBES: T-test ####
 #test against zero
@@ -34,8 +43,10 @@ t.test(netdiv$NBE, mu = 0, alternative = "two.sided")
 
 
 #### NBES: Presence/absence of species ~NBES ####
-#explore the interaction of temperature and species combinations
+# explore the interaction of temperature and species combinations
 # analyse if presence absence of species affects NBE
+# seperately for each temperature treatment
+
 combiEffect <- netdiv %>%
   mutate(composition = combination) %>%
   mutate(A = ifelse(str_detect(combination, 'A'), 1, 0), # for presence 1 for absence 0 
@@ -58,7 +69,7 @@ aov4<-aov(NBE~A+D+G+R+T, inc)
 summary(aov4)
 
 #### NBES: Contrasts ####
-# contrast 1: 2 versus 4 species
+# contrast 1 (con): 2 versus 4 species
 
 netdiv$con1<-NA
 netdiv$con1[netdiv$N==2]<- "A"
@@ -90,9 +101,15 @@ summary(lm3)
 
 #### data NBE Functioning ####
 
-HectorRaw <- read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBEonFunctioning.csv') %>%
-  select(-X)
-str(HectorRaw)
+source(here("~/Desktop/Exp22/MicrocosmExp22/code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
+str(allNetBiodiv)
+HectorRaw <- allNetBiodiv 
+
+#or
+#import as csv
+#HectorRaw <- read.csv('~/Desktop/Exp22/MicrocosmExp22/Data/NBEonFunctioning.csv') %>%
+#  select(-X)
+#str(HectorRaw)
 
 HectorRaw$combination<-as.factor(HectorRaw$combination)
 summary(HectorRaw)
@@ -106,19 +123,13 @@ ggplot(HectorRaw, aes(y = NetEffect, x = as.factor(temp), fill=as.factor(N)))+
   geom_boxplot()
 
 # test for normality
-maxNE <- max(abs(HectorRaw$NetEffect))
-HectorRaw$trans = log(HectorRaw$NetEffect + maxNE)
-fligner.test(trans~interaction(temp,combination), HectorRaw)
+fligner.test(NetEffect~interaction(temp,combination), HectorRaw)
 
 plot(resid(aov1))
 hist(resid(aov1))
-hist(((HectorRaw$NetEffect)^2))
-
-
-dummy <- (HectorRaw$NetEffect^2)
-summary(dummy)
-qqnorm(log(HectorRaw$NetEffect^2))
-
+hist(((HectorRaw$NetEffect)))
+qqnorm(HectorRaw$NetEffect)
+qqline(HectorRaw$NetEffect)
 
 #### NBE on F: T-Test ####
 #test against zero
@@ -128,6 +139,7 @@ t.test(HectorRaw$NetEffect, mu = 0, alternative = "two.sided")
 #### NBES - NBE on F: Correlation ####
 Corr.data <- netdiv %>%
   select(combination, temp, rep, NBE, N) %>%
+  mutate(N = as.factor(N)) %>%
   left_join(.,HectorRaw, by = c('combination', 'temp', 'rep', 'N'))
 
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')
