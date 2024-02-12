@@ -1,12 +1,13 @@
 #### Start statistics ####
 # 11.07.2023
 # Helmut Hillebrand & Charlotte Kunze
+setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 library(tidyverse)
 library(ggpubr)
 library(sjPlot)
+library(here)
 
-#setwd("~/Desktop/Exp22/MicrocosmExp22")
 
 #### data NBES ####
 
@@ -154,3 +155,6 @@ Corr.data <- netdiv %>%
 
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')
 ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.png'))
+
+#### detach sjPlot package ####
+detach("package:sjPlot", unload=TRUE)
