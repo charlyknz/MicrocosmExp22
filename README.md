@@ -1,5 +1,9 @@
 # README NBE
 
+## To run the code..
+Please store the contents of the repository on your device & run Main.R
+
+
 ## R Session info
 R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
@@ -18,7 +22,7 @@ locale:
 
 ## Rcode:
 
-### Main.R – creates all plots displayed in the MS
+### Main.R – creates all plots displayed in the MS, script accessess several other R scripts
 
 ### 00_NBE_MergeRawData: merges raw data, i.e. temperature measurements, count data for each sampling
 
