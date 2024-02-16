@@ -115,7 +115,7 @@ mixplot <- biomass %>%
         legend.text = element_text(size=14))
 mixplot
 
-plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(7/10, 3/10),labels = c('(a)', '(b)'))
+plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(6.5/9, 2.5/9),labels = c('(a)', '(b)'))
 ggsave(plot = last_plot(), file = here('output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
 
 
