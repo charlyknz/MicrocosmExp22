@@ -470,9 +470,9 @@ RR1 <- MonoData %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14))
+        legend.key.size = unit(1, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))
 RR1
 
 RR2 <- MonoData %>%
@@ -495,9 +495,9 @@ RR2 <- MonoData %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14))
+        legend.key.size = unit(1, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))
 RR2
 
 RR4 <- MonoData %>%
@@ -520,9 +520,9 @@ RR4 <- MonoData %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14))
+        legend.key.size = unit(1, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))
 RR4
 
 RR5 <- MonoData %>%
@@ -545,9 +545,9 @@ RR5 <- MonoData %>%
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14))
+        legend.key.size = unit(1, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))
 RR5
 
 RR1+RR2+RR4+RR5+
