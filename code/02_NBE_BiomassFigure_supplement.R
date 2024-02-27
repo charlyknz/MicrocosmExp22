@@ -9,7 +9,7 @@ library(here)
 library(cowplot)
 
 
-#### create color palettes ####
+#### create color and shape palettes ####
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" ) # temp treatments
 cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7") #species
 shape_values <- c(23,16, 17, 15)
@@ -20,6 +20,7 @@ rawData <- read.csv('Data/AllRawData_InclBV.csv')
 summary(rawData)
 
 
+# calculate mean biomass and transform biovolume in um3 to mm3 per ml
 biomass<- rawData%>%
   mutate(day = sampling * 2,
          day = as.numeric(paste(ifelse(sampling == 1, 1, sampling*2))))%>%
@@ -29,6 +30,7 @@ biomass<- rawData%>%
             sdV = sd(cellV_mm_ml, na.rm = T),
             seV = sdV/sqrt(n()))
 
+# change labels for temperature tratments and species
 biomass$temp[biomass$temp=='CS'] <- 'Constant'
 biomass$temp[biomass$temp=='fluct'] <- 'Fluctuation'
 biomass$temp[biomass$temp=='inc'] <- 'Increase'
@@ -41,8 +43,9 @@ biomass$speciesID[biomass$speciesID=='Rhizo'] <- 'Rhizosolenia'
 biomass$speciesID[biomass$speciesID=='ThalaCux'] <- 'Thalassionema'
 
 
-#### Indivdiual species plots ####
+#### Plots with species-specific responses ####
 
+#Two species 
 Duoplot <- biomass %>%
   filter(species == 'duo') %>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
@@ -68,6 +71,7 @@ Duoplot <- biomass %>%
 Duoplot
 ggsave(plot = Duoplot, file = here('output/FigS3_Duo_Biomass.png'), width = 12, height = 12)
 
+#4 species
 Quattroplot <- biomass %>%
   filter(species == 'quattro') %>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
@@ -89,7 +93,7 @@ Quattroplot <- biomass %>%
   theme(legend.position = 'none')
 Quattroplot
 
-
+# 5 species
 mixplot <- biomass %>%
   filter(!species%in%c('duo','mono', 'quattro') )%>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
@@ -118,7 +122,7 @@ mixplot
 plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(7/10, 3/10),labels = c('(a)', '(b)'))
 ggsave(plot = last_plot(), file = here('output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
 
-
+# monocultures
 Mono <- biomass %>%
   filter(species == 'mono') %>%
   ggplot(., aes( x = day, y = meanV, color = temp, group = temp, shape = temp))+
@@ -147,7 +151,8 @@ Mono <- biomass %>%
         legend.text = element_text(size=14))
 Mono
 
-#### sum of biomass ####
+#### Total biomass ####
+
 biomass1<- rawData%>%
   mutate(day = sampling * 2,
          day = as.numeric(paste(ifelse(sampling == 1, 1, sampling*2))))%>%
@@ -158,14 +163,14 @@ biomass1<- rawData%>%
             seV = sdV/sqrt(n()))
 
 
-#brewer.pal(n = 8, name = "Set1")
+# rename labels
 biomass1$temp[biomass1$temp=='CS'] <- 'Constant'
 biomass1$temp[biomass1$temp=='fluct'] <- 'Fluctuation'
 biomass1$temp[biomass1$temp=='inc'] <- 'Increase'
 biomass1$temp[biomass1$temp=='inc+fluc'] <- 'IncreaseFluctuation'
 
 
-### all ###
+### Create Fig. on total biomass over time ###
 biomass1$combination <- factor(as.factor(biomass1$combination) , 
                                levels = c('A','D','G','R','T',
                                           "AD" ,"AG" ,"AR","AT" ,"DG","DR","DT", "GR" , "GT" ,"RT",

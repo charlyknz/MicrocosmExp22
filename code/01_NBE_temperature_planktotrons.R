@@ -12,7 +12,6 @@ str(df)
 
 
 ## data wrangling
-
 temp <- df %>%
   mutate(datetime = timestamp) %>%
   separate(timestamp, into = c('date', 'time'), sep = ' ') %>%
@@ -20,16 +19,17 @@ temp <- df %>%
   filter(date < '2022-02-18') %>%
   mutate(time1 = as.character(time)) 
 
-dev.off()
 
-# order MC after treatments
+# set color palette
 tempPalette <- c('black' ,"#E41A1C","#4DAF4A","#377EB8"  ) # temp treatments
 
+# order mesocosms after treatments
 dataPlot <- temp%>%
   filter( unit %in%c(8,11,2,5)) %>%
   mutate(treat = ifelse(unit == 11, 'Constant', ifelse(unit == 2, 'Increase', ifelse(unit == 8, 'Fluctuation', 'Fluctuation + Increase'))))
 levels(as.factor(dataPlot$treat))
 
+#temperature plots
 plot <- ggplot(dataPlot, aes(x = datetime, y = actual_tempmiddle, color = treat))+
   geom_line(linewidth = 1.0)+
   facet_wrap(~treat,  ncol = 1)+

@@ -58,6 +58,7 @@ counts_mono_tmax_ <- expData %>%
   rename(Mi = cellV_mm_ml) %>%
   select( temp, speciesID, rep,Mi)
 names(counts_mono_tmax_)
+
 # NBE
 #combine df RelAbund_t0 and OD_counts_tmax
 NBE_duo <- left_join(RelBV_t0_,counts_mono_tmax_, by = c( 'temp', 'speciesID', 'rep')) %>%
@@ -112,7 +113,7 @@ NBE_duo %>%
         legend.text = element_text(size=14))
 
 
-#### Netto Biodiversity Effect Mix ####
+#### Netto Biodiversity Effect 4 and 5 spp ####
 
 # Yoi
 # observed biomass of species in mixture and monoculture  
@@ -231,7 +232,7 @@ plot245<- allNetBiodiv %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 plot245
 
-
+#extract legend
 legend_f<- get_legend(plot245)
 
 nbef <- cowplot::plot_grid( NBE+theme(legend.position = 'none'),

@@ -12,14 +12,13 @@ library(cowplot)
 library(patchwork)
 
 
-# look at the data 
-
 #### import species-specific biomass data ####
 expData<-read.csv('Data/AllRawData_InclBV.csv') %>%
   select(-X) %>%
   mutate(cellV_mm_ml = cellVolume/10^9) %>%
   select(-cellVolume)
 
+#check import
 names(expData)
 str(expData)
 which(is.na(expData$cells_ml))
@@ -32,14 +31,14 @@ control_stab <- expData %>%
   group_by(combination, sampling, species,speciesID ) %>%
   summarise(con.vol = mean(cellV_mm_ml, na.rm = T)) 
 
-#treatment data 
+#treatment & control data 
 treat <- expData %>%
   filter(temp != 'CS') %>%
   select(-no)%>%
   left_join(., control_stab, by = c( 'combination','species', 'sampling', 'speciesID'))
 
 
-# relative biomass of species in mxiture at t0
+# relative biomass of species in mixture at t0
 RelBV_t0_ <- treat %>%
   filter(sampling == 1) %>%
   group_by(combination, temp, rep) %>%
@@ -50,7 +49,7 @@ RelBV_t0_ <- treat %>%
 names(RelBV_t0_)
 
 
-#### NBE on Stability Two species ####
+#### Net Biodiversity Effect on Stability (NBES): Two species ####
 
 ## variables
 # M - mono culture of species
@@ -91,50 +90,49 @@ all <- mono %>%
   mutate(sumexp = sum(exp, na.rm = T),
          RR_ges_exp = (sumexp-sumC)/(sumexp+sumC))%>%
   ungroup()%>%
-  mutate(delta = RR_obs - RR_exp) %>%
-  mutate(delta_ges = RR_ges_obs-RR_ges_exp) %>%
-  group_by(speciesID, temp, sampling,  combination,rep) %>%
-  mutate(delta_RR = Mix_T - exp) 
+  mutate(delta_ges = RR_ges_obs-RR_ges_exp) 
 
-resistance_duo <- filter(all, sampling == 3)
-all$delta[is.na(all$delta)]<-0
+#subset for resistance calculation
+resistance_duo <- all %>%
+  filter(sampling == 3) %>%
+  distinct(species, combination,temp, rep, delta_ges)
+
+#create Unique identifier USI
 all$USI <- paste(all$temp, all$combination,all$speciesID, all$rep, sep = '_')
-
 str(all)
 
+#order after timepoints
 all <- all[order(all$sampling),]
+
 ggplot(subset(all, sampling == 1),aes( x = combination, y  = delta_ges))+
   geom_point()+
   facet_wrap(~temp)
 
-##### AUC #####
-stab.auc <- tibble()
+##### Area Under the Curve - AUC #####
+stab.auc <- tibble() #empty tibble
 names(all)
 
-USI <- unique(all$USI)
+USI <- unique(all$USI) ##create Unique identifier USI
+
 for(i in 1:length(USI)){
   temp<-all[all$USI==USI[i], ]#creates a temporary data frame for each case
   if(dim(temp)[1]>2){#does the next step only if at least 3 data points are present
-    AUC.deltaRR<-auc(temp$sampling, temp$delta_RR,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
-                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_obs<-auc(temp$sampling, temp$RR_ges_obs,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_exp<-auc(temp$sampling, temp$RR_ges_exp,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
-    AUC.delta<-auc(temp$sampling, temp$delta,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
-                   type = c("linear"),absolutearea = FALSE)
     AUC.ges.RR<-auc(temp$sampling, temp$delta_ges,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_mono <- auc(temp$sampling, temp$RR_mono, from = min(temp$sampling, na.rm = T), to = max(temp$sampling, na.rm = T),
                            type = c('linear'), absolutearea = F)
     NBE <- AUC.RR_obs - AUC.RR_exp
     stab.auc<-rbind(stab.auc,
-                    tibble(temp[1,c(1:3,7,8,25)],
-                               NBE,
-                               AUC.deltaRR,                           
-                               AUC.delta,
-                               AUC.ges.RR,
-                               AUC.RR_exp,AUC.RR_obs, AUC.RR_mono))
+                    tibble(temp[1,c(1:3,7,8,24)],
+                              NBE,
+                              AUC.ges.RR,
+                              AUC.RR_exp,
+                              AUC.RR_obs, 
+                              AUC.RR_mono))
     rm(temp)
   }
 }
@@ -149,29 +147,6 @@ cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7")
 stab.auc$temp[stab.auc$temp=='fluct'] <- 'Fluctuation'
 stab.auc$temp[stab.auc$temp=='inc'] <- 'Increase'
 stab.auc$temp[stab.auc$temp=='inc+fluc'] <- 'IncreaseFluctuation'
-
-stab.auc %>%
-  group_by(combination,speciesID, temp)%>%
-  summarise(mean = mean(AUC.delta,na.rm = T),
-            sd = sd(AUC.delta,na.rm = T),
-            se = sd/sqrt(n())) %>%
-  ggplot(., aes(x = combination, y =mean, color = speciesID))+
-  geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = .8)+
-  geom_point(alpha=0.8, size = 2)+
-  facet_grid(~temp, scales = 'free')+
-  labs(y = 'Net effect Species Stability')+
-  scale_colour_brewer(palette = "Set1")+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
-
 
 
 # relative BV at to 
@@ -188,13 +163,13 @@ BV_t0_duo <- all %>%
   geom_hline(yintercept = 0.5, color = 'darkgrey', linewidth = 0.2)+
   scale_fill_manual(values=cbbPalette)+
   facet_grid(~temp, scales = 'free')+
-  labs(y =  expression(Mean~Relative~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Combination', color = 'Species')+
+  labs(y =  expression(Mean~Relative~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Combination', color = 'Species')+
   theme_bw()+
   theme(legend.position = 'none')
 BV_t0_duo
 
 
-#### NBE on Stability: 4-species and 5-species Mix ####
+#### NBES: 4-and 5-species assemblages ####
 
 # M - monoculture of species - use the one from above
 str(mono)
@@ -203,6 +178,7 @@ str(mono)
 names(treat)
 mix <- treat %>%
   filter(species %in% c('MIX', 'quattro')) %>%
+  select(-con.vol)%>%
   ungroup() 
 
 mix_con <- control_stab %>%
@@ -245,23 +221,28 @@ allMix <- mono %>%
   mutate(sumexp = sum(exp, na.rm = T),
          RR_ges_exp = (sumexp-sumC)/(sumexp+sumC))%>%
   ungroup()%>%
-  mutate(delta_ges = RR_ges_obs-RR_ges_exp) %>%
-  group_by(speciesID, temp, sampling, combination,rep) %>%
-  mutate(delta_RR = Mix_T - exp)
+  mutate(delta_ges = RR_ges_obs-RR_ges_exp) 
 
-resistance_mix <- filter(allMix,sampling == 3)
+#subset for resistance calculation
+resistance_mix <- allMix%>%
+  filter(sampling == 3) %>%
+  distinct(species,combination, temp, rep, delta_ges)
+
+
+#unique identifier
 allMix$USI <- paste(allMix$temp, allMix$combination,allMix$speciesID, allMix$rep, sep = '_')
 
-##### AUC #####
+##### Area Under the Curve - 4,5 spp #####
 stab.auc.mix <- tibble()
 names(allMix)
+
+#unique identifier
 USI <- unique(allMix$USI)
+
 for(i in 1:length(USI)){
   temp<-allMix[allMix$USI==USI[i], ]#creates a temporary data frame for each case
   if(dim(temp)[1]>2){#does the next step only if at least 3 data points are present
-    AUC.deltaRR<-auc(temp$sampling, temp$delta_RR,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
-                     type = c("linear"),absolutearea = FALSE)
-        AUC.ges.RR<-auc(temp$sampling, temp$delta_ges,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
+    AUC.ges.RR<-auc(temp$sampling, temp$delta_ges,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_exp<-auc(temp$sampling, temp$RR_ges_exp,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
@@ -269,9 +250,11 @@ for(i in 1:length(USI)){
                     type = c("linear"),absolutearea = FALSE)
     NBE <- AUC.RR_obs-AUC.RR_exp
     stab.auc.mix<-rbind(stab.auc.mix,
-                        data.frame(temp[1,c(1:3,7,8,24)],
-                                   NBE,AUC.deltaRR,
-                                   AUC.ges.RR,AUC.RR_obs,AUC.RR_exp))
+                        data.frame(temp[1,c(1:3,7,8,23)],
+                                   NBE,
+                                   AUC.ges.RR,
+                                   AUC.RR_obs,
+                                   AUC.RR_exp))
     rm(temp)
   }
 }
@@ -284,32 +267,6 @@ cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7")
 stab.auc.mix$temp[stab.auc.mix$temp=='fluct'] <- 'Fluctuation'
 stab.auc.mix$temp[stab.auc.mix$temp=='inc'] <- 'Increase'
 stab.auc.mix$temp[stab.auc.mix$temp=='inc+fluc'] <- 'IncreaseFluctuation'
-
-
-#pannels for temp only
-stab.auc.mix %>%
-  group_by(combination, speciesID, temp)%>%
-  summarise(mean = mean(AUC.deltaRR,na.rm = T),
-            sd = sd(AUC.deltaRR,na.rm = T),
-            se = sd/sqrt(n())) %>%
-  ggplot(., aes(x = combination, y = mean, fill = speciesID, color = speciesID))+
-  geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = .3)+
-  geom_point(size = 2, alpha=0.8)+
-  facet_grid(~temp, scales = 'free')+
-  labs( y = 'AUC(MixT - exp)')+
-  scale_fill_manual(values=cbbPalette)+
-  scale_color_manual(values=cbbPalette)+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
-  theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
-  theme(legend.position = 'bottom')+
-  guides(color = guide_legend(override.aes = list(size = 3.5)))
 
 
 # relative BV at to 
@@ -328,11 +285,12 @@ BV_t0_mix <- allMix %>%
   geom_col(aes(x = combination, y = mean.BV, fill = speciesID))+
   scale_fill_manual(values=cbbPalette)+
   facet_grid(~temp, scales = 'free')+
-  labs(y =  expression(Mean~Relative~Biovolume~x~10^9~'['~µm^3~'/'~ml~']'), x = 'Combination', color = 'Species')+
+  labs(y =  expression(Mean~Relative~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Combination', color = 'Species')+
   theme_bw()+
   theme(legend.position = 'none')
 BV_t0_mix
 
+### Relative Biovolume at T0 plot
 cowplot::plot_grid(BV_t0_duo, BV_t0_mix, labels = c('(a)', '(b)'), ncol = 1)
 ggsave(plot = last_plot(), file = here('output/RelativeBVatT0.png'), width = 8, height = 8)
 
@@ -341,6 +299,7 @@ ggsave(plot = last_plot(), file = here('output/RelativeBVatT0.png'), width = 8, 
 #### Merge Stabilities ####
 tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
 
+#remove duplicates created during AUC loop
 d1 <- stab.auc %>%
   distinct(combination, rep,temp,NBE, AUC.RR_exp,AUC.RR_obs)
 d2 <- stab.auc.mix %>%
@@ -415,7 +374,7 @@ p2 <- d3%>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 p2
 
-
+#create plot grird
 nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
 
 
@@ -429,7 +388,7 @@ ggsave(plot = last_plot(), file = here('output/Fig3_NBE_NBES.png'), width = 15, 
 
 
 
-#### Figure AUC.RR ####
+#### Figure Observed Stability ####
 names(d1)
 MonoData <- stab.auc %>%
   ungroup()%>%
@@ -560,12 +519,10 @@ ggsave(plot = last_plot(), file = here('output/Fig2_ObservedStab_patchwork.png')
 
   
 #### NBES resistance ####
-resistance_duo 
-resistance_mix
+names(resistance_duo)
+names(resistance_mix)
 
-all_resistance <- rbind(resistance_duo, resistance_mix) %>%
-  ungroup()%>%
-  distinct(temp, rep, delta_ges, species)
+all_resistance <- rbind(resistance_duo,resistance_mix)
 
 all_resistance$N <- NA
 all_resistance$N[all_resistance$species == 'mono']<-'1'
