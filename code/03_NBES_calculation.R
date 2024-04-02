@@ -418,7 +418,7 @@ RR1 <- MonoData %>%
   labs(x = 'Combination', y = 'Observed OEV', color = 'Treatment', shape = 'Treatment')+
   scale_colour_brewer(palette = "Set1")+
   facet_wrap(~label,  ncol =2)+
-  scale_y_continuous(limits = c(-7,7))+
+  scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
@@ -443,7 +443,7 @@ RR2 <- MonoData %>%
   labs(x = 'Combination', y = '', color = 'Treatment', shape = 'Treatment')+
   scale_colour_brewer(palette = "Set1")+
   facet_wrap(~label,  ncol =2)+
-  scale_y_continuous(limits = c(-7,7))+
+  scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
@@ -468,7 +468,7 @@ RR4 <- MonoData %>%
   labs(x = 'Combination', y = 'Observed OEV', color = 'Treatment', shape = 'Treatment')+
   scale_colour_brewer(palette = "Set1")+
   facet_wrap(~label,  ncol =2)+
-  scale_y_continuous(limits = c(-7,7))+
+  scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
@@ -493,7 +493,7 @@ RR5 <- MonoData %>%
   labs(x = 'Combination', y = '', color = 'Treatment', shape = 'Treatment')+
   scale_colour_brewer(palette = "Set1")+
   facet_wrap(~label,  ncol =2)+
-  scale_y_continuous(limits = c(-7,7))+
+  scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
@@ -633,6 +633,6 @@ ggplot(.) +
 NBESCV
 
 cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('output/FigS1_NBESmetrics_overall.png'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('output/FigS2_NBESmetrics_overall.png'), width = 8, height = 6)
 
 

@@ -141,7 +141,6 @@ qqline(HectorRaw$NetEffect)
 #test against zero
 test2<-t.test(HectorRaw$NetEffect, mu = 0, alternative = "two.sided")
 test2
-tab_model(test2, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBEonF_t-test.doc"))
 
 
 #### NBES - NBE on F: Correlation ####
