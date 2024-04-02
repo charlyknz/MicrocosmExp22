@@ -1,0 +1,26 @@
+{
+    "id": "5CC2DC00",
+    "path": "~/Desktop/phD/Experiments/CharlyTPC2021/createTPC/CalculateLinearGrowthRates_package.R",
+    "project_path": null,
+    "type": "r_source",
+    "hash": "2404346",
+    "contents": "",
+    "dirty": false,
+    "created": 1711464506395.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "94,0",
+        "scrollLine": "80"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1711464734,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1711464734708,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,94 @@
+rm(list=ls())#remove all environment data
+library(tidyverse)
+library(mgcv) #gam package
+library(growthrates)
+library(readxl)
+
+
+##Arbeitsverzeichnis setzen (die folgende Zeile setzt das Arbeitsverzeichnis an den Ort des R-Skriptes)
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+
+
+#### import all data ####
+AllSamplingsCombined <- read_delim("AllSamplingsDistinct.csv", 
+                                   ";", escape_double = FALSE, locale = locale(decimal_mark = ","), trim_ws = TRUE)#%>%
+  #select(-X1)
+AllBlanks <- read_csv("AllBlanks.csv") %>%
+  filter(treatment_ID != 'MQ') %>%
+  select(treatment_ID, value, temperature, plate, wavelength1) %>%
+  rename(Blank = value) 
+
+TPC_Masters_ID <- read_excel("~/Desktop/phD/Experiments/CharlyTPC2021/DataForAnalysis/TPC_Masters_ID.xlsx") %>%
+  select(-death, -comment)
+TPC_Masters_ID2 <- read_excel("~/Desktop/phD/Experiments/CharlyTPC2021/DataForAnalysis/TPC_Masters_ID.xlsx", sheet = "TPC_2NEW") %>%
+  select(-ID, -death, -comment, -wellplate, -Ansatz) %>%
+  mutate(ID = paste(SpeciesName, temperature, nut, rep, Sample, sep = ' ')) %>%
+  rename(species = SpeciesName)
+
+TPC_Master <- rbind(TPC_Masters_ID, TPC_Masters_ID2) %>%
+  filter(!species %in% c('Mix', 'pulse'))
+
+#merge all data
+tbl<-left_join(AllSamplingsCombined, TPC_Master, by = c('nut', 'temperature', 'rep', 'species')) %>%
+  mutate(treatment_ID = paste(species, nut, rep, sep = ' ')) %>%
+  rename(raw = value)
+which(is.na(tbl$sampling_death))
+str(tbl)
+
+tbl<-merge(tbl, AllBlanks, by = c('plate', 'treatment_ID', 'temperature', 'wavelength1')) %>%
+  mutate(value = raw-Blank) %>%
+  mutate(sampling_death = as.numeric(sampling_death)) %>%
+  drop_na(sampling_death) %>%
+  select(-"...1")%>%
+  distinct(treatment_ID, temperature, wavelength1, method, fileName,ID,  sampling, species, nut, rep,value,sampling_death )
+
+
+#### Calculation of growthrates ####
+
+data0 <- tbl %>%
+  filter(wavelength1 == 440 & nut == 'HI'& species %in% c('DityCux', 'ThalaCux', 'Asterio2', 'Rhizo', 'Guido')) %>%
+  filter(value >0 & value <1) %>%
+  mutate(sampling = as.numeric(paste(ifelse(species == 'Asterio2', sampling-6, sampling))))
+str(data0)
+
+
+data0 %>%
+  filter(species == 'Rhizo') %>%
+  ggplot(.,aes(x =sampling, y = value))+
+  geom_point()+
+  facet_wrap(~temperature, scale = 'free_y')+
+  theme_bw()
+
+
+data<-data0%>%
+  group_by(ID)%>%
+  arrange(ID, sampling)%>%
+  filter(sampling < sampling_death-5)%>%
+  filter(n()>4)%>%
+  do(model=fit_easylinear(.$sampling,.$value))%>%   #growth rate model
+  mutate(r=summary(model)$coefficient[2,1],
+         pvalue=summary(model)$coefficient[2,4])%>%  #gives you the slope (r) and pvalue
+  mutate(id = ID) %>%
+  separate(ID, into = c('species', 'temp', 'nut', 'rep', 'sample'), sep = ' ') %>%
+  select(-model, -nut) 
+
+#remove outliers
+Asterio <- subset(data,  species == 'Asterio2') %>%
+  filter(r>0 & r<0.81) 
+
+data_subset <- data %>%
+  filter(species != 'Asterio2') %>%
+  filter(r>0 & r < 0.6) %>%
+  bind_rows(., Asterio) %>%
+  mutate(temp = as.numeric(temp)) %>%
+  arrange(species, temp) 
+
+
+#save linar growth rates
+saveRDS(data_subset, file = 'LinearGrowthData.RDS')
+
+data_subset %>%
+  ggplot(., aes(x = temp, y = r, color = pvalue))+
+  geom_point()+
+  geom_smooth()+
+  facet_grid(~species)

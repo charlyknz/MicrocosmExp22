@@ -3,7 +3,7 @@
     "path": "~/Desktop/Exp22/MicrocosmExp22/code/Main.R",
     "project_path": "code/Main.R",
     "type": "r_source",
-    "hash": "2415588538",
+    "hash": "577195781",
     "contents": "",
     "dirty": false,
     "created": 1708070241028.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "38,0",
-        "scrollLine": "0"
+        "cursorPosition": "3,0",
+        "scrollLine": "1"
     },
     "folds": "",
-    "lastKnownWriteTime": 1708071857,
+    "lastKnownWriteTime": 1711357329,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1708071857011,
+    "last_content_update": 1711357329024,
     "read_only": false,
     "read_only_alternatives": []
 }
