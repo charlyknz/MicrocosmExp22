@@ -81,7 +81,7 @@ unique(NBE_duo$temp)
 NBE_duo$temp[NBE_duo$temp=='CS'] <- 'Constant'
 NBE_duo$temp[NBE_duo$temp=='fluct'] <- 'Fluctuation'
 NBE_duo$temp[NBE_duo$temp=='inc'] <- 'Increase'
-NBE_duo$temp[NBE_duo$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+NBE_duo$temp[NBE_duo$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 # Net effect plot
@@ -149,7 +149,7 @@ unique(NBE_mix$temp)
 NBE_mix$temp[NBE_mix$temp=='CS'] <- 'Constant'
 NBE_mix$temp[NBE_mix$temp=='fluct'] <- 'Fluctuation'
 NBE_mix$temp[NBE_mix$temp=='inc'] <- 'Increase'
-NBE_mix$temp[NBE_mix$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+NBE_mix$temp[NBE_mix$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 NBE_mix$combination[NBE_mix$combination == 'ADGRT'] <- '5spec'
 
@@ -191,8 +191,8 @@ NBE<-allNetBiodiv%>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14))
+        legend.title = element_text(size=15),
+        legend.text = element_text(size=13))
 
 NBE
 
@@ -227,8 +227,8 @@ plot245<- allNetBiodiv %>%
         strip.text.x  = element_text(size = 12))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))+
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 plot245
 

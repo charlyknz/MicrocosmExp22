@@ -1,0 +1,1713 @@
+# Skript to merge data
+# hier sind alle Algen vermerkt zur Entscheidungsfindung ob sie gekillt werden koennen
+
+# Schritt 1: Alle Daten einladen
+# Schritt 2: plots ueber die Zeit anschauen 
+# Schritt 3: Checken von RFU + OD!! Erst wenn beide runter gehen kann fruehstens gekillt werden
+# Schritt 4: Kurven auf Signifikanz prüfen. - sowohl K als auch r sollten signifikant sein.
+### Hinweis: Sowohl fuer OD als auch RFU sollten values signifikant sein (wenn möglich)
+## Odontella ist schlecht in RFU gespiegelt.
+
+rm(list=ls())
+
+#improt packages
+library(tidyverse)
+library(readxl)
+library(growthrates)
+
+##Arbeitsverzeichnis setzen (die folgende Zeile setzt das Arbeitsverzeichnis an den Ort des R-Skriptes)
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+
+#make sure the wd is right:
+#setwd("C:/Users/tonis/Documents/Uni/ICBM_Bachelorarbeit/DataForAnalysis/data_files_tpc")
+setwd("~/Desktop/phD/Experiments/CharlyTPC2021")
+
+
+#### import all data ####
+AllSamplingsCombined <- read_delim("~/Desktop/phD/Experiments/CharlyTPC2021/createTPC/AllSamplingsDistinct.csv", 
+                                   ";", escape_double = FALSE, locale = locale(decimal_mark = ","), trim_ws = TRUE)#%>%
+#select(-X1)
+AllBlanks <- read_csv("~/Desktop/phD/Experiments/CharlyTPC2021/createTPC/AllBlanks.csv") %>%
+  filter(treatment_ID != 'MQ') %>%
+  select(treatment_ID, value, temperature, plate, wavelength1) %>%
+  rename(Blank = value) 
+TPC_Masters_ID <- read_excel("~/Desktop/phD/Experiments/CharlyTPC2021/DataForAnalysis/TPC_Masters_ID.xlsx") %>%
+  select(-death, -comment)
+TPC_Masters_ID2 <- read_excel("~/Desktop/phD/Experiments/CharlyTPC2021/DataForAnalysis/TPC_Masters_ID.xlsx", sheet = "TPC_2NEW") %>%
+  select(-ID, -death, -comment, -wellplate, -Ansatz) %>%
+  mutate(ID = paste(SpeciesName, temperature, nut, rep, Sample, sep = ' ')) %>%
+  rename(species = SpeciesName)
+TPC_Master <- rbind(TPC_Masters_ID, TPC_Masters_ID2) %>%
+  filter(!species %in% c('Mix', 'pulse'))
+#merge all data
+tbl<-left_join(AllSamplingsCombined, TPC_Master, by = c('nut', 'temperature', 'rep', 'species')) %>%
+  mutate(treatment_ID = paste(species, nut, rep, sep = ' ')) %>%
+  rename(raw = value)
+which(is.na(tbl$sampling_death))
+str(tbl)
+tbl<-merge(tbl, AllBlanks, by = c('plate', 'treatment_ID', 'temperature', 'wavelength1')) %>%
+  mutate(value = raw-Blank) %>%
+  mutate(sampling_death = as.numeric(sampling_death)) %>%
+  drop_na(sampling_death)
+
+#### NLS models ####
+## R script Anna Lena
+
+#### Thala CUX ####
+## ThalaCux 6 HI
+ThalaCux6r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_6_HI') %>%
+  filter(!sampling%in% c(28,29,32,37)) %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux6r1$value[ThalaCux6r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux6r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux6r1$value[ThalaCux6r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+ThalaCux6_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = ThalaCux6r1)
+summary(ThalaCux6_model)
+sum_modeL <-summary(ThalaCux6_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux6r1 $N0 <- N0
+ThalaCux6r1 $K <- K
+ThalaCux6r1 $r <- r
+ThalaCux6r1 $pK <- pK
+ThalaCux6r1 $pr <- pr
+ggplot(ThalaCux6r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux6r1, aes(x = sampling, y = predict(ThalaCux6_model)))
+
+
+## ThalaCux 6 Low
+ThalaCux6Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_6_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux6Lr1$value[ThalaCux6Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux6Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux6Lr1$value[ThalaCux6Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux6_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = ThalaCux6Lr1)
+summary(ThalaCux6_model)
+sum_modeL <-summary(ThalaCux6_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux6Lr1 $N0 <- N0
+ThalaCux6Lr1 $K <- K
+ThalaCux6Lr1 $r <- r
+ThalaCux6Lr1 $pK <- pK
+ThalaCux6Lr1 $pr <- pr
+ggplot(ThalaCux6Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux6Lr1, aes(x = sampling, y = predict(ThalaCux6_model)))
+
+## ThalaCux 9 HI
+ThalaCux9r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_9_HI') %>%
+  #    filter(!sampling%in% c(28,29,32,37)) %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux9r1$value[ThalaCux9r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux9r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux9r1$value[ThalaCux9r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux9_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = ThalaCux9r1)
+summary(ThalaCux9_model)
+sum_modeL <-summary(ThalaCux9_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux9r1 $N0 <- N0
+ThalaCux9r1 $K <- K
+ThalaCux9r1 $r <- r
+ThalaCux9r1 $pK <- pK
+ThalaCux9r1 $pr <- pr
+ggplot(ThalaCux9r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux9r1, aes(x = sampling, y = predict(ThalaCux9_model)))
+
+
+## ThalaCux 9 Low
+ThalaCux9Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_9_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux9Lr1$value[ThalaCux9Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux9Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux9Lr1$value[ThalaCux9Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux9_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = ThalaCux9Lr1)
+summary(ThalaCux9_model)
+sum_modeL <-summary(ThalaCux9_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux9Lr1 $N0 <- N0
+ThalaCux9Lr1 $K <- K
+ThalaCux9Lr1 $r <- r
+ThalaCux9Lr1 $pK <- pK
+ThalaCux9Lr1 $pr <- pr
+ggplot(ThalaCux9Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux9Lr1, aes(x = sampling, y = predict(ThalaCux9_model)))
+
+
+## ThalaCux 12 HI
+ThalaCux12r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_12_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux12r1$value[ThalaCux12r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux12r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux12r1$value[ThalaCux12r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux12_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux12r1)
+summary(ThalaCux12_model)
+sum_modeL <-summary(ThalaCux12_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux12r1 $N0 <- N0
+ThalaCux12r1 $K <- K
+ThalaCux12r1 $r <- r
+ThalaCux12r1 $pK <- pK
+ThalaCux12r1 $pr <- pr
+ggplot(ThalaCux12r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux12r1, aes(x = sampling, y = predict(ThalaCux12_model)))
+
+
+## ThalaCux 12 Low
+ThalaCux12Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_12_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux12Lr1$value[ThalaCux12Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux12Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux12Lr1$value[ThalaCux12Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux12_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux12Lr1)
+summary(ThalaCux12_model)
+sum_modeL <-summary(ThalaCux12_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux12Lr1 $N0 <- N0
+ThalaCux12Lr1 $K <- K
+ThalaCux12Lr1 $r <- r
+ThalaCux12Lr1 $pK <- pK
+ThalaCux12Lr1 $pr <- pr
+ggplot(ThalaCux12Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux12Lr1, aes(x = sampling, y = predict(ThalaCux12_model)))
+
+## ThalaCux 15 HI
+ThalaCux15r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_15_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux15r1$value[ThalaCux15r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux15r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux15r1$value[ThalaCux15r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux15_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux15r1)
+summary(ThalaCux15_model)
+sum_modeL <-summary(ThalaCux15_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux15r1 $N0 <- N0
+ThalaCux15r1 $K <- K
+ThalaCux15r1 $r <- r
+ThalaCux15r1 $pK <- pK
+ThalaCux15r1 $pr <- pr
+ggplot(ThalaCux15r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux15r1, aes(x = sampling, y = predict(ThalaCux15_model)))
+
+
+## ThalaCux 15 Low
+ThalaCux15Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_15_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux15Lr1$value[ThalaCux15Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux15Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux15Lr1$value[ThalaCux15Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux15_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux15Lr1)
+summary(ThalaCux15_model)
+sum_modeL <-summary(ThalaCux15_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux15Lr1 $N0 <- N0
+ThalaCux15Lr1 $K <- K
+ThalaCux15Lr1 $r <- r
+ThalaCux15Lr1 $pK <- pK
+ThalaCux15Lr1 $pr <- pr
+ggplot(ThalaCux15Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux15Lr1, aes(x = sampling, y = predict(ThalaCux15_model)))
+
+
+## ThalaCux 18 HI
+ThalaCux18r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_18_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux18r1$value[ThalaCux18r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux18r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux18r1$value[ThalaCux18r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux18_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux18r1)
+summary(ThalaCux18_model)
+sum_modeL <-summary(ThalaCux18_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux18r1 $N0 <- N0
+ThalaCux18r1 $K <- K
+ThalaCux18r1 $r <- r
+ThalaCux18r1 $pK <- pK
+ThalaCux18r1 $pr <- pr
+ggplot(ThalaCux18r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux18r1, aes(x = sampling, y = predict(ThalaCux18_model)))
+
+
+## ThalaCux 18 Low
+ThalaCux18Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_18_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux18Lr1$value[ThalaCux18Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux18Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux18Lr1$value[ThalaCux18Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux18_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux18Lr1)
+summary(ThalaCux18_model)
+sum_modeL <-summary(ThalaCux18_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux18Lr1 $N0 <- N0
+ThalaCux18Lr1 $K <- K
+ThalaCux18Lr1 $r <- r
+ThalaCux18Lr1 $pK <- pK
+ThalaCux18Lr1 $pr <- pr
+ggplot(ThalaCux18Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux18Lr1, aes(x = sampling, y = predict(ThalaCux18_model)))
+
+
+## ThalaCux 21 HI
+ThalaCux21r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_21_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux21r1$value[ThalaCux21r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux21r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux21r1$value[ThalaCux21r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux21_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux21r1)
+summary(ThalaCux21_model)
+sum_modeL <-summary(ThalaCux21_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux21r1 $N0 <- N0
+ThalaCux21r1 $K <- K
+ThalaCux21r1 $r <- r
+ThalaCux21r1 $pK <- pK
+ThalaCux21r1 $pr <- pr
+ggplot(ThalaCux21r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux21r1, aes(x = sampling, y = predict(ThalaCux21_model)))
+
+
+
+## ThalaCux 21 Low
+ThalaCux21Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_21_Low') %>%
+  filter(sampling <sampling_death)
+N0s<- median(ThalaCux21Lr1$value[ThalaCux21Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux21Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux21Lr1$value[ThalaCux21Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux21_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux21Lr1)
+summary(ThalaCux21_model)
+sum_modeL <-summary(ThalaCux21_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux21Lr1 $N0 <- N0
+ThalaCux21Lr1 $K <- K
+ThalaCux21Lr1 $r <- r
+ThalaCux21Lr1 $pK <- pK
+ThalaCux21Lr1 $pr <- pr
+ggplot(ThalaCux21Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux21Lr1, aes(x = sampling, y = predict(ThalaCux21_model)))
+
+
+## ThalaCux 24 HI
+ThalaCux24r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_24_HI') %>%
+  filter(sampling <=sampling_death)
+N0s<- median(ThalaCux24r1$value[ThalaCux24r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux24r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux24r1$value[ThalaCux24r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.8#Estimated growth rate (r)
+ThalaCux24_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux24r1)
+summary(ThalaCux24_model)
+sum_modeL <-summary(ThalaCux24_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux24r1 $N0 <- N0
+ThalaCux24r1 $K <- K
+ThalaCux24r1 $r <- r
+ThalaCux24r1 $pK <- pK
+ThalaCux24r1 $pr <- pr
+ggplot(ThalaCux24r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux24r1, aes(x = sampling, y = predict(ThalaCux24_model)))
+
+
+## ThalaCux 24 Low
+ThalaCux24Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_24_Low') %>%
+  filter(sampling <=sampling_death)
+N0s<- median(ThalaCux24Lr1$value[ThalaCux24Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux24Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux24Lr1$value[ThalaCux24Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux24_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux24Lr1)
+summary(ThalaCux24_model)
+sum_modeL <-summary(ThalaCux24_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux24Lr1 $N0 <- N0
+ThalaCux24Lr1 $K <- K
+ThalaCux24Lr1 $r <- r
+ThalaCux24Lr1 $pK <- pK
+ThalaCux24Lr1 $pr <- pr
+ggplot(ThalaCux24Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux24Lr1, aes(x = sampling, y = predict(ThalaCux24_model)))
+
+
+## ThalaCux 27 HI
+ThalaCux27r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_27_HI') %>%
+  filter(sampling <sampling_death-5)
+N0s<- median(ThalaCux27r1$value[ThalaCux27r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux27r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux27r1$value[ThalaCux27r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+ThalaCux27_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux27r1)
+summary(ThalaCux27_model)
+sum_modeL <-summary(ThalaCux27_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux27r1 $N0 <- N0
+ThalaCux27r1 $K <- K
+ThalaCux27r1 $r <- r
+ThalaCux27r1 $pK <- pK
+ThalaCux27r1 $pr <- pr
+ggplot(ThalaCux27r1, aes(x = sampling, y = value, color = rep))+
+  geom_point()+
+  geom_line(data = ThalaCux27r1, aes(x = sampling, y = predict(ThalaCux27_model)))
+
+
+## ThalaCux 27 Low
+ThalaCux27Lr1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'ThalaCux_27_Low') %>%
+  filter(sampling <sampling_death-5) %>%
+  filter(value < 0.06)
+N0s<- median(ThalaCux27Lr1$value[ThalaCux27Lr1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(ThalaCux27Lr1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(ThalaCux27Lr1$value[ThalaCux27Lr1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+ThalaCux27_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = ThalaCux27Lr1)
+summary(ThalaCux27_model)
+sum_modeL <-summary(ThalaCux27_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+ThalaCux27Lr1 $N0 <- N0
+ThalaCux27Lr1 $K <- K
+ThalaCux27Lr1 $r <- r
+ThalaCux27Lr1 $pK <- pK
+ThalaCux27Lr1 $pr <- pr
+ggplot(ThalaCux27Lr1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = ThalaCux27Lr1, aes(x = sampling, y = predict(ThalaCux27_model)))
+
+ThalaCuxall <- rbind(ThalaCux27Lr1, ThalaCux27r1,ThalaCux24Lr1, ThalaCux24r1,ThalaCux21Lr1, ThalaCux21r1,
+                     ThalaCux18Lr1, ThalaCux18r1,ThalaCux15Lr1, ThalaCux15r1,ThalaCux12Lr1, ThalaCux12r1,
+                     ThalaCux9Lr1, ThalaCux9r1,ThalaCux6Lr1, ThalaCux6r1)
+ggplot(ThalaCuxall, aes(x = temperature, y = r, color = nut, group = nut))+
+  geom_point()+
+  geom_line()
+ggsave(plot = last_plot(), 'ThalaCux_r_temp.png')
+
+write.csv2(ThalaCuxall, file = 'ThalaCux_noRep.csv')
+
+#### Asterio 2 ####
+Asterio26r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_6_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio26r1$value[Asterio26r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio26r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio26r1$value[Asterio26r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+Asterio26_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = Asterio26r1)
+summary(Asterio26_model)
+sum_modeL <-summary(Asterio26_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio26r1 $N0 <- N0
+Asterio26r1 $K <- K
+Asterio26r1 $r <- r
+Asterio26r1 $pK <- pK
+Asterio26r1 $pr <- pr
+ggplot(Asterio26r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio26r1, aes(x = sampling, y = predict(Asterio26_model)))
+
+## Asterio2 9 HI
+Asterio29r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_9_HI') %>%
+  #    filter(!sampling%in% c(28,29,32,37)) %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio29r1$value[Asterio29r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio29r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio29r1$value[Asterio29r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Asterio29_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = Asterio29r1)
+summary(Asterio29_model)
+sum_modeL <-summary(Asterio29_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio29r1 $N0 <- N0
+Asterio29r1 $K <- K
+Asterio29r1 $r <- r
+Asterio29r1 $pK <- pK
+Asterio29r1 $pr <- pr
+ggplot(Asterio29r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio29r1, aes(x = sampling, y = predict(Asterio29_model)))
+
+
+
+
+## Asterio2 12 HI
+Asterio212r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_12_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio212r1$value[Asterio212r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio212r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio212r1$value[Asterio212r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Asterio212_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = Asterio212r1)
+summary(Asterio212_model)
+sum_modeL <-summary(Asterio212_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio212r1 $N0 <- N0
+Asterio212r1 $K <- K
+Asterio212r1 $r <- r
+Asterio212r1 $pK <- pK
+Asterio212r1 $pr <- pr
+ggplot(Asterio212r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio212r1, aes(x = sampling, y = predict(Asterio212_model)))
+
+
+## Asterio2 15 HI
+Asterio215r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_15_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio215r1$value[Asterio215r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio215r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio215r1$value[Asterio215r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Asterio215_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = Asterio215r1)
+summary(Asterio215_model)
+sum_modeL <-summary(Asterio215_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio215r1 $N0 <- N0
+Asterio215r1 $K <- K
+Asterio215r1 $r <- r
+Asterio215r1 $pK <- pK
+Asterio215r1 $pr <- pr
+ggplot(Asterio215r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio215r1, aes(x = sampling, y = predict(Asterio215_model)))
+
+
+
+## Asterio2 18 HI
+Asterio218r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_18_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio218r1$value[Asterio218r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio218r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio218r1$value[Asterio218r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Asterio218_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = Asterio218r1)
+summary(Asterio218_model)
+sum_modeL <-summary(Asterio218_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio218r1 $N0 <- N0
+Asterio218r1 $K <- K
+Asterio218r1 $r <- r
+Asterio218r1 $pK <- pK
+Asterio218r1 $pr <- pr
+ggplot(Asterio218r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio218r1, aes(x = sampling, y = predict(Asterio218_model)))
+
+
+## Asterio2 21 HI
+Asterio221r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_21_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio221r1$value[Asterio221r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio221r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio221r1$value[Asterio221r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+Asterio221_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = Asterio221r1)
+summary(Asterio221_model)
+sum_modeL <-summary(Asterio221_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio221r1 $N0 <- N0
+Asterio221r1 $K <- K
+Asterio221r1 $r <- r
+Asterio221r1 $pK <- pK
+Asterio221r1 $pr <- pr
+ggplot(Asterio221r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio221r1, aes(x = sampling, y = predict(Asterio221_model)))
+
+
+
+
+## Asterio2 24 HI
+Asterio224r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Asterio2_24_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Asterio224r1$value[Asterio224r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio224r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio224r1$value[Asterio224r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Asterio224_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                        start=list(N0=N0s,K=Ks,r=rs),
+                        data = Asterio224r1)
+summary(Asterio224_model)
+sum_modeL <-summary(Asterio224_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Asterio224r1 $N0 <- N0
+Asterio224r1 $K <- K
+Asterio224r1 $r <- r
+Asterio224r1 $pK <- pK
+Asterio224r1 $pr <- pr
+ggplot(Asterio224r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Asterio224r1, aes(x = sampling, y = predict(Asterio224_model)))
+
+
+
+## Asterio2 27 HI
+Asterio227r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, rep,sep = '_'),
+         log = log(value)) %>%
+  filter(value >=0)%>%
+  filter(treatmentID == 'Asterio2_27_HI_1') %>%
+  filter(sampling <sampling_death) %>%
+  distinct(plate, treatment_ID, temperature, 
+           wavelength1,"...1" ,method, raw,
+           fileName, sampling, species, 
+           nut, rep, treat,
+           ID, Sample, sampling_death, 
+           Blank, value, treatmentID,
+           log)
+N0s<- median(Asterio227r1$value[Asterio227r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Asterio227r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Asterio227r1$value[Asterio227r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.6#Estimated growth rate (r)
+#Estimated growth rate (r)
+fit21 <- fit_easylinear(Asterio227r1$sampling, Asterio227r1$value)
+summary(fit21)# x=Âµmax with p-value
+coef(fit21) #gives you the parameters without p-value
+sum_model <-summary(fit21)
+N0 <- 0
+K<-0
+r  <- sum_model$coefficients[2,1] #r
+pK  <- 0
+pr  <- 0
+Asterio227r1 $N0 <- N0
+Asterio227r1 $K <- K
+Asterio227r1 $r <- r
+Asterio227r1 $pK <- pK
+Asterio227r1 $pr <- pr
+
+Asterio2all <- bind_rows(Asterio227r1, Asterio224r1, Asterio221r1,
+                     Asterio218r1, Asterio215r1, Asterio212r1,
+                      Asterio29r1, Asterio26r1) %>%
+  select(- "\"...1\"" , - "...5" )
+names(Asterio2all)
+ggplot(Asterio2all, aes(x = temperature, y = r, color = nut, group = nut))+
+  geom_point()+
+  geom_line()
+
+write.csv2(Asterio2all, file = 'Asterio2.csv')
+
+#### Guido ####
+
+## Guido 6 
+Guido6r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, rep,sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_6_HI_1') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido6r1$value[Guido6r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido6r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido6r1$value[Guido6r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.6#Estimated growth rate (r)
+#Estimated growth rate (r)
+fit21 <- fit_easylinear(Guido6r1$sampling, Guido6r1$value)
+summary(fit21)# x=Âµmax with p-value
+coef(fit21) #gives you the parameters without p-value
+sum_model <-summary(fit21)
+N0 <- 0
+K<-0
+r  <- sum_model$coefficients[2,1] #r
+pK  <- 0
+pr  <- 0
+Guido6r1 $N0 <- N0
+Guido6r1 $K <- K
+Guido6r1 $r <- r
+Guido6r1 $pK <- pK
+Guido6r1 $pr <- pr
+
+
+## Guido 9 HI
+Guido9r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_9_HI') %>%
+  #    filter(!sampling%in% c(28,29,32,37)) %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido9r1$value[Guido9r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido9r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido9r1$value[Guido9r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Guido9_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                    start=list(N0=N0s,K=Ks,r=rs),
+                    data = Guido9r1)
+summary(Guido9_model)
+sum_modeL <-summary(Guido9_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido9r1 $N0 <- N0
+Guido9r1 $K <- K
+Guido9r1 $r <- r
+Guido9r1 $pK <- pK
+Guido9r1 $pr <- pr
+ggplot(Guido9r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido9r1, aes(x = sampling, y = predict(Guido9_model)))
+
+
+## Guido 12 HI
+Guido12r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_12_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido12r1$value[Guido12r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido12r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido12r1$value[Guido12r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Guido12_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                     start=list(N0=N0s,K=Ks,r=rs),
+                     data = Guido12r1)
+summary(Guido12_model)
+sum_modeL <-summary(Guido12_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido12r1 $N0 <- N0
+Guido12r1 $K <- K
+Guido12r1 $r <- r
+Guido12r1 $pK <- pK
+Guido12r1 $pr <- pr
+ggplot(Guido12r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido12r1, aes(x = sampling, y = predict(Guido12_model)))
+
+
+
+## Guido 15 HI
+Guido15r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_15_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido15r1$value[Guido15r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido15r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido15r1$value[Guido15r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Guido15_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                     start=list(N0=N0s,K=Ks,r=rs),
+                     data = Guido15r1)
+summary(Guido15_model)
+sum_modeL <-summary(Guido15_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido15r1 $N0 <- N0
+Guido15r1 $K <- K
+Guido15r1 $r <- r
+Guido15r1 $pK <- pK
+Guido15r1 $pr <- pr
+ggplot(Guido15r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido15r1, aes(x = sampling, y = predict(Guido15_model)))
+
+
+
+
+## Guido 18 HI
+Guido18r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_18_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido18r1$value[Guido18r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido18r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido18r1$value[Guido18r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Guido18_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                     start=list(N0=N0s,K=Ks,r=rs),
+                     data = Guido18r1)
+summary(Guido18_model)
+sum_modeL <-summary(Guido18_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido18r1 $N0 <- N0
+Guido18r1 $K <- K
+Guido18r1 $r <- r
+Guido18r1 $pK <- pK
+Guido18r1 $pr <- pr
+ggplot(Guido18r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido18r1, aes(x = sampling, y = predict(Guido18_model)))
+
+
+
+## Guido 21 HI
+Guido21r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_21_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido21r1$value[Guido21r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido21r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido21r1$value[Guido21r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+Guido21_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                     start=list(N0=N0s,K=Ks,r=rs),
+                     data = Guido21r1)
+summary(Guido21_model)
+sum_modeL <-summary(Guido21_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido21r1 $N0 <- N0
+Guido21r1 $K <- K
+Guido21r1 $r <- r
+Guido21r1 $pK <- pK
+Guido21r1 $pr <- pr
+ggplot(Guido21r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido21r1, aes(x = sampling, y = predict(Guido21_model)))
+
+
+
+
+## Guido 24 HI
+Guido24r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_24_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(Guido24r1$value[Guido24r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido24r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido24r1$value[Guido24r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+Guido24_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                     start=list(N0=N0s,K=Ks,r=rs),
+                     data = Guido24r1)
+summary(Guido24_model)
+sum_modeL <-summary(Guido24_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+Guido24r1 $N0 <- N0
+Guido24r1 $K <- K
+Guido24r1 $r <- r
+Guido24r1 $pK <- pK
+Guido24r1 $pr <- pr
+ggplot(Guido24r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = Guido24r1, aes(x = sampling, y = predict(Guido24_model)))
+
+
+## Guido 27 HI
+Guido27r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, rep,sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Guido_27_HI_1') %>%
+  filter(sampling <sampling_death) 
+N0s<- median(Guido27r1$value[Guido27r1$sampling==7] )#Set the start OD-value (Day=1)
+Daymax<-max(Guido27r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Guido27r1$value[Guido27r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.6#Estimated growth rate (r)
+#Estimated growth rate (r)
+fit21 <- fit_easylinear(Guido27r1$sampling, Guido27r1$value)
+summary(fit21)# x=Âµmax with p-value
+coef(fit21) #gives you the parameters without p-value
+sum_model <-summary(fit21)
+N0 <- 0
+K<-0
+r  <- sum_model$coefficients[2,1] #r
+pK  <- 0
+pr  <- 0
+Guido27r1 $N0 <- N0
+Guido27r1 $K <- K
+Guido27r1 $r <- r
+Guido27r1 $pK <- pK
+Guido27r1 $pr <- pr
+
+
+Guidoall <- rbind(Guido27r1, Guido24r1, Guido21r1,
+                  Guido18r1, Guido15r1, Guido12r1,
+                   Guido9r1, Guido6r1)
+ggplot(Guidoall, aes(x = temperature, y = r, color = nut, group = nut))+
+  geom_point()+
+  geom_line()
+#ggsave(plot = last_plot(), 'Guido_r_temp.png')
+write.csv2(Guidoall, file = 'Guido.csv')
+
+#### DityCux ####
+## DityCux 6 HI
+DityCux6r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_6_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux6r1$value[DityCux6r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux6r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux6r1$value[DityCux6r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3#Estimated growth rate (r)
+DityCux6_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                      start=list(N0=N0s,K=Ks,r=rs),
+                      data = DityCux6r1)
+summary(DityCux6_model)
+sum_modeL <-summary(DityCux6_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux6r1 $N0 <- N0
+DityCux6r1 $K <- K
+DityCux6r1 $r <- r
+DityCux6r1 $pK <- pK
+DityCux6r1 $pr <- pr
+ggplot(DityCux6r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux6r1, aes(x = sampling, y = predict(DityCux6_model)))
+
+
+## DityCux 9 HI
+DityCux9r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_9_HI') %>%
+  #    filter(!sampling%in% c(28,29,32,37)) %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux9r1$value[DityCux9r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux9r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux9r1$value[DityCux9r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux9_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                      start=list(N0=N0s,K=Ks,r=rs),
+                      data = DityCux9r1)
+summary(DityCux9_model)
+sum_modeL <-summary(DityCux9_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux9r1 $N0 <- N0
+DityCux9r1 $K <- K
+DityCux9r1 $r <- r
+DityCux9r1 $pK <- pK
+DityCux9r1 $pr <- pr
+ggplot(DityCux9r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux9r1, aes(x = sampling, y = predict(DityCux9_model)))
+
+
+
+## DityCux 12 HI
+DityCux12r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_12_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux12r1$value[DityCux12r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux12r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux12r1$value[DityCux12r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux12_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux12r1)
+summary(DityCux12_model)
+sum_modeL <-summary(DityCux12_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux12r1 $N0 <- N0
+DityCux12r1 $K <- K
+DityCux12r1 $r <- r
+DityCux12r1 $pK <- pK
+DityCux12r1 $pr <- pr
+ggplot(DityCux12r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux12r1, aes(x = sampling, y = predict(DityCux12_model)))
+
+
+## DityCux 15 HI
+DityCux15r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_15_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux15r1$value[DityCux15r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux15r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux15r1$value[DityCux15r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux15_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux15r1)
+summary(DityCux15_model)
+sum_modeL <-summary(DityCux15_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux15r1 $N0 <- N0
+DityCux15r1 $K <- K
+DityCux15r1 $r <- r
+DityCux15r1 $pK <- pK
+DityCux15r1 $pr <- pr
+ggplot(DityCux15r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux15r1, aes(x = sampling, y = predict(DityCux15_model)))
+
+## DityCux 18 HI
+DityCux18r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_18_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux18r1$value[DityCux18r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux18r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux18r1$value[DityCux18r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux18_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux18r1)
+summary(DityCux18_model)
+sum_modeL <-summary(DityCux18_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux18r1 $N0 <- N0
+DityCux18r1 $K <- K
+DityCux18r1 $r <- r
+DityCux18r1 $pK <- pK
+DityCux18r1 $pr <- pr
+ggplot(DityCux18r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux18r1, aes(x = sampling, y = predict(DityCux18_model)))
+
+
+
+## DityCux 21 HI
+DityCux21r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_21_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux21r1$value[DityCux21r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux21r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux21r1$value[DityCux21r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux21_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux21r1)
+summary(DityCux21_model)
+sum_modeL <-summary(DityCux21_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux21r1 $N0 <- N0
+DityCux21r1 $K <- K
+DityCux21r1 $r <- r
+DityCux21r1 $pK <- pK
+DityCux21r1 $pr <- pr
+ggplot(DityCux21r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux21r1, aes(x = sampling, y = predict(DityCux21_model)))
+
+
+
+
+## DityCux 24 HI
+DityCux24r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_24_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux24r1$value[DityCux24r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux24r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux24r1$value[DityCux24r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux24_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux24r1)
+summary(DityCux24_model)
+sum_modeL <-summary(DityCux24_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux24r1 $N0 <- N0
+DityCux24r1 $K <- K
+DityCux24r1 $r <- r
+DityCux24r1 $pK <- pK
+DityCux24r1 $pr <- pr
+ggplot(DityCux24r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux24r1, aes(x = sampling, y = predict(DityCux24_model)))
+
+
+
+## DityCux 27 HI
+DityCux27r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'DityCux_27_HI') %>%
+  filter(sampling <sampling_death)
+N0s<- median(DityCux27r1$value[DityCux27r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(DityCux27r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(DityCux27r1$value[DityCux27r1$sampling==Daymax])#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13#Estimated growth rate (r)
+DityCux27_model <- nls(value ~ K*N0*exp(r*sampling)/(K+N0*(exp(r*sampling)-1)),
+                       start=list(N0=N0s,K=Ks,r=rs),
+                       data = DityCux27r1)
+summary(DityCux27_model)
+sum_modeL <-summary(DityCux27_model)
+N0 <- sum_modeL$coefficients[1,1] #N0
+K  <- sum_modeL$coefficients[2,1] #K
+r  <- sum_modeL$coefficients[3,1] #r
+pK  <- sum_modeL$coefficients[2,4] #pK
+pr  <- sum_modeL$coefficients[3,4] #pr
+DityCux27r1 $N0 <- N0
+DityCux27r1 $K <- K
+DityCux27r1 $r <- r
+DityCux27r1 $pK <- pK
+DityCux27r1 $pr <- pr
+ggplot(DityCux27r1, aes(x = sampling, y = value))+
+  geom_point()+
+  geom_line(data = DityCux27r1, aes(x = sampling, y = predict(DityCux27_model)))
+
+
+DityCuxall <- rbind( DityCux27r1, DityCux24r1, DityCux21r1,
+                     DityCux18r1,DityCux15r1, DityCux12r1,
+                    DityCux9r1,DityCux6r1)
+ggplot(DityCuxall, aes(x = temperature, y = r, color = nut, group = nut))+
+  geom_point()+
+  geom_line()
+#ggsave(plot = last_plot(), 'DityCux_r_temp.png')
+
+write.csv2(DityCuxall, file = 'DityCux.csv')
+
+#### Rhizo Lag ####
+# Rhizo 6 HI r1
+names(tbl)
+Rhizo6r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut,  sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_6_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(32,29))
+N0s<- median(Rhizo6r1$log[Rhizo6r1$sampling==1]) #Set the start OD-value (Day=1)
+Daymax<-max(Rhizo6r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo6r1$log[Rhizo6r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.13
+lags <- 3
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo6r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo6r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo6r1,aes(x=sampling,y=log))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo6r1 $N0 <- N0
+Rhizo6r1 $K <- K
+Rhizo6r1 $r <- r
+Rhizo6r1 $pK <- pK
+Rhizo6r1 $pr <- pr
+
+
+
+# Rhizo 9 HI r1
+names(tbl)
+Rhizo9r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut,  sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_9_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(1,2,3,4,5,32,29))
+N0s<- median(Rhizo9r1$log[Rhizo9r1$sampling==6]) #Set the start OD-value (Day=1)
+Daymax<-max(Rhizo9r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo9r1$log[Rhizo9r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3
+lags <- 2
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo9r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo9r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo9r1,aes(x=sampling,y=log))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo9r1 $N0 <- N0
+Rhizo9r1 $K <- K
+Rhizo9r1 $r <- r
+Rhizo9r1 $pK <- pK
+Rhizo9r1 $pr <- pr
+
+
+
+# Rhizo 12 HI r1
+names(tbl)
+Rhizo12r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_12_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(32,29))
+N0s<- median(Rhizo12r1$log[Rhizo12r1$sampling==1]) #Set the start OD-value (Day=1)
+Daymax<-max(Rhizo12r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo12r1$log[Rhizo12r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3
+lags <- 3
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo12r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo12r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo12r1,aes(x=sampling,y=log))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo12r1 $N0 <- N0
+Rhizo12r1 $K <- K
+Rhizo12r1 $r <- r
+Rhizo12r1 $pK <- pK
+Rhizo12r1 $pr <- pr
+
+# Rhizo 15 HI r1
+names(tbl)
+Rhizo15r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut,  sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_15_HI' ) %>%
+  filter(sampling < sampling_death) %>%
+  filter(!sampling %in% c(32,29))
+N0s<- median(Rhizo15r1$log[Rhizo15r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Rhizo15r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo15r1$log[Rhizo15r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3
+lags <- 6
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo15r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo15r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo15r1,aes(x=sampling,y=value))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo15r1 $N0 <- N0
+Rhizo15r1 $K <- K
+Rhizo15r1 $r <- r
+Rhizo15r1 $pK <- pK
+Rhizo15r1 $pr <- pr
+
+
+
+
+# Rhizo 18 HI r1
+names(tbl)
+Rhizo18r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_18_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(32,29))
+N0s<- median(Rhizo18r1$log[Rhizo18r1$sampling==1]) #Set the start OD-value (Day=1)
+Daymax<-max(Rhizo18r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo18r1$log[Rhizo18r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.3
+lags <- 6
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo18r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo18r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo18r1,aes(x=sampling,y=log))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo18r1 $N0 <- N0
+Rhizo18r1 $K <- K
+Rhizo18r1 $r <- r
+Rhizo18r1 $pK <- pK
+Rhizo18r1 $pr <- pr
+
+# Rhizo 21 HI r1
+names(tbl)
+Rhizo21r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_21_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(32,29)) %>%
+  filter(!rep == 3| !sampling%in% c(5))
+N0s<- median(Rhizo21r1$log[Rhizo21r1$sampling==1]) #Set the start OD-value (Day=1)
+Daymax<-max(Rhizo21r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo21r1$log[Rhizo21r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.6
+lags <- 6
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo21r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo21r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo21r1,aes(x=sampling,y=log, color = rep))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[2,4] #pK
+pr  <- sum_model$coefficients[3,4] #pr
+Rhizo21r1 $N0 <- N0
+Rhizo21r1 $K <- K
+Rhizo21r1 $r <- r
+Rhizo21r1 $pK <- pK
+Rhizo21r1 $pr <- pr
+
+
+# Rhizo 24 HI r1
+names(tbl)
+Rhizo24r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut, sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_24_HI' ) %>%
+  filter(sampling <= sampling_death) %>%
+  filter(!sampling %in% c(32,29))
+N0s<- median(Rhizo24r1$log[Rhizo24r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Rhizo24r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo24r1$log[Rhizo24r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-0.6
+lags <- 2
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo24r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo24r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo24r1,aes(x=sampling,y=log))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[3,4] #pK
+pr  <- sum_model$coefficients[4,4] #pr
+Rhizo24r1 $N0 <- N0
+Rhizo24r1 $K <- K
+Rhizo24r1 $r <- r
+Rhizo24r1 $pK <- pK
+Rhizo24r1 $pr <- pr
+
+
+# Rhizo 27 HI r1
+names(tbl)
+Rhizo27r1<- tbl %>%
+  filter(wavelength1 %in% c('440')) %>% 
+  mutate(treatmentID = paste(species, temperature, nut,  sep = '_'),
+         log = log(value)) %>%
+  filter(treatmentID == 'Rhizo_27_HI' ) %>%
+  filter(sampling < sampling_death-1 ) %>%
+  filter(!rep == 3)
+N0s<- median(Rhizo27r1$log[Rhizo27r1$sampling==1] )#Set the start OD-value (Day=1)
+Daymax<-max(Rhizo27r1$sampling) #Select the maximum number of days (time of incubation)
+Ks<-median(Rhizo27r1$log[Rhizo27r1$sampling==Daymax])
+#Estimated value for K (Carrying Capacity) = Time of incubation
+rs<-2
+lags <- 4
+#lag model
+model <- nls(log ~K+log10((-1+exp(r*lag)+exp(r*sampling))/
+                            (exp(r*sampling)-1+exp(r*lag)*10^(K-N0))),
+             start=list(N0=N0s,K=Ks,r=rs,lag=lags),
+             data = Rhizo27r1,
+             nls.control(maxiter = 5000,minFactor = 1/2^200))
+summary(model)
+boi<-Rhizo27r1$sampling
+df=data.frame(boi,predict(model))
+ggplot(data=Rhizo27r1,aes(x=sampling,y=log, color = rep))+
+  geom_point()+#aes(col=as.factor(replicate))
+  geom_point(aes(x=df$boi,y=df$predict.model.),size=2,col="red")+
+  geom_line(aes(x=df$boi,y=df$predict.model.),col="red")
+
+sum_model <-summary(model)
+N0 <- sum_model$coefficients[1,1] #N0
+K  <- sum_model$coefficients[2,1] #K
+r  <- sum_model$coefficients[3,1] #r
+pK  <- sum_model$coefficients[3,4] #pK
+pr  <- sum_model$coefficients[4,4] #pr
+Rhizo27r1 $N0 <- N0
+Rhizo27r1 $K <- K
+Rhizo27r1 $r <- r
+Rhizo27r1 $pK <- pK
+Rhizo27r1 $pr <- pr
+
+
+#all Rhizo
+Rhizo <- rbind( Rhizo27r1,
+                Rhizo24r1,
+               Rhizo21r1,
+               Rhizo18r1,
+                Rhizo15r1,
+               Rhizo12r1,
+                Rhizo9r1,
+                Rhizo6r1) 
+write.csv2(Rhizo,file = 'Rhizo_rK.csv' )
+Rhizo %>%
+  ggplot(., aes( x = temperature, y = r, color = as.factor(nut)))+
+  geom_point()+
+  geom_smooth()+
+  theme_bw()+
+  ggtitle('Rhizosolenia setigera Helgoland')
+#ggsave(plot = last_plot(), 'Rhizo_K_temp.png')

@@ -146,13 +146,13 @@ unique(stab.auc$combination)
 cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7")
 stab.auc$temp[stab.auc$temp=='fluct'] <- 'Fluctuation'
 stab.auc$temp[stab.auc$temp=='inc'] <- 'Increase'
-stab.auc$temp[stab.auc$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+stab.auc$temp[stab.auc$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 # relative BV at to 
 all$temp[all$temp=='fluct'] <- 'Fluctuation'
 all$temp[all$temp=='inc'] <- 'Increase'
-all$temp[all$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+all$temp[all$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 BV_t0_duo <- all %>%
   filter(sampling == 1 ) %>%
@@ -266,7 +266,7 @@ unique(stab.auc.mix$combination)
 cbbPalette <- c("#E69F00", "#000000","#0072B2", "#009E73","#CC79A7")
 stab.auc.mix$temp[stab.auc.mix$temp=='fluct'] <- 'Fluctuation'
 stab.auc.mix$temp[stab.auc.mix$temp=='inc'] <- 'Increase'
-stab.auc.mix$temp[stab.auc.mix$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+stab.auc.mix$temp[stab.auc.mix$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 # relative BV at to 
@@ -274,7 +274,7 @@ allMix$combination[allMix$combination == 'ADGRT'] <- 'Mix'
 
 allMix$temp[allMix$temp=='fluct'] <- 'Fluctuation'
 allMix$temp[allMix$temp=='inc'] <- 'Increase'
-allMix$temp[allMix$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+allMix$temp[allMix$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 BV_t0_mix <- allMix %>%
@@ -346,8 +346,8 @@ p1<-d3%>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))
 p1
 legendb<-get_legend(p1)
 
@@ -375,7 +375,7 @@ p2 <- d3%>%
 p2
 
 #create plot grird
-nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.05, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
+nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.1, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
 
 
 #### Merge NBES with NBE on Functioning ####
@@ -430,8 +430,8 @@ RR1 <- MonoData %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))
 RR1
 
 RR2 <- MonoData %>%
@@ -455,8 +455,8 @@ RR2 <- MonoData %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))
 RR2
 
 RR4 <- MonoData %>%
@@ -480,8 +480,8 @@ RR4 <- MonoData %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))
 RR4
 
 RR5 <- MonoData %>%
@@ -505,8 +505,8 @@ RR5 <- MonoData %>%
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12))
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=11))
 RR5
 
 RR1+RR2+RR4+RR5+
@@ -532,7 +532,7 @@ all_resistance$N[all_resistance$species == 'MIX']<-'5'
 
 all_resistance$temp[all_resistance$temp=='fluct'] <- 'Fluctuation'
 all_resistance$temp[all_resistance$temp=='inc'] <- 'Increase'
-all_resistance$temp[all_resistance$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+all_resistance$temp[all_resistance$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 NBESresistance <- all_resistance  %>%
@@ -605,7 +605,7 @@ CV$combination[CV$combination == 'Mix']<-'ADGRT'
 
 CV$temp[CV$temp=='fluct'] <- 'Fluctuation'
 CV$temp[CV$temp=='inc'] <- 'Increase'
-CV$temp[CV$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+CV$temp[CV$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 NBESCV <- CV %>%
   group_by(temp, N) %>%

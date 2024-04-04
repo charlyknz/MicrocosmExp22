@@ -34,7 +34,7 @@ biomass<- rawData%>%
 biomass$temp[biomass$temp=='CS'] <- 'Constant'
 biomass$temp[biomass$temp=='fluct'] <- 'Fluctuation'
 biomass$temp[biomass$temp=='inc'] <- 'Increase'
-biomass$temp[biomass$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+biomass$temp[biomass$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 biomass$speciesID[biomass$speciesID=='Asterio'] <- 'Asterionellopsis'
 biomass$speciesID[biomass$speciesID=='DityCux'] <- 'Ditylum'
@@ -167,7 +167,7 @@ biomass1<- rawData%>%
 biomass1$temp[biomass1$temp=='CS'] <- 'Constant'
 biomass1$temp[biomass1$temp=='fluct'] <- 'Fluctuation'
 biomass1$temp[biomass1$temp=='inc'] <- 'Increase'
-biomass1$temp[biomass1$temp=='inc+fluc'] <- 'IncreaseFluctuation'
+biomass1$temp[biomass1$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 
 ### Create Fig. on total biomass over time ###

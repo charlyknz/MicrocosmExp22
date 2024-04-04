@@ -21,12 +21,12 @@ temp <- df %>%
 
 
 # set color palette
-tempPalette <- c('black' ,"#E41A1C","#4DAF4A","#377EB8"  ) # temp treatments
+tempPalette <- c('black' ,"#E41A1C","#377EB8","#4DAF4A" ) # temp treatments
 
 # order mesocosms after treatments
 dataPlot <- temp%>%
   filter( unit %in%c(8,11,2,5)) %>%
-  mutate(treat = ifelse(unit == 11, 'Constant', ifelse(unit == 2, 'Increase', ifelse(unit == 8, 'Fluctuation', 'Fluctuation + Increase'))))
+  mutate(treat = ifelse(unit == 11, 'Constant', ifelse(unit == 2, 'Increase', ifelse(unit == 8, 'Fluctuation', 'Increase + Fluctuation'))))
 levels(as.factor(dataPlot$treat))
 
 #temperature plots
