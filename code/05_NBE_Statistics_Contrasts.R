@@ -65,7 +65,7 @@ fluct <- combiEffect %>% filter(temp == 'Fluctuation')
 aov2<-aov(NBE~A+D+G+R+T, fluct)
 summary(aov2)
 
-incfluct <- combiEffect %>% filter(temp == 'IncreaseFluctuation')
+incfluct <- combiEffect %>% filter(temp == 'Increase + Fluctuation')
 aov3<-aov(NBE~A+D+G+R+T, incfluct)
 summary(aov3)
 
@@ -105,7 +105,7 @@ summary(lm3)
 
 #### data NBE Functioning ####
 
-source(here("code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
+source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 str(allNetBiodiv)
 HectorRaw <- allNetBiodiv 
 
@@ -154,3 +154,4 @@ ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.png'))
 
 #### detach sjPlot package ####
 detach("package:sjPlot", unload=TRUE)
+

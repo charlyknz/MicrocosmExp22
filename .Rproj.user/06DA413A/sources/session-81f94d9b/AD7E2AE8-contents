@@ -1,0 +1,22 @@
+#### Temperature data ####
+
+## R Script to gather temperature data 
+
+### required packages ###
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(hms)
+library(here)
+
+## import excel files using a Loop
+directory <-  paste(path='~/Desktop/phD/Exp22/Temperature_Charly_Planktotrons_2022',sep = '') # hier sind meine Daten
+
+#read file (from [here][1])
+file.list<- list.files(full.names = TRUE, pattern = "*.xls", path = '~/Desktop/phD/Exp22/Temperature_Charly_Planktotrons_2022')
+
+df.list <- lapply(file.list, read_excel)
+df <- bind_rows(df.list, .id = "id")
+df <- filter(df, !unit %in% c(3, 4,9))
+str(df)
+write.csv(x = df, file = here('~/Desktop/phD/Exp22/MicrocosmExp22/Data/all_temperatures.csv'))
