@@ -384,7 +384,7 @@ nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust 
 source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 
 (nbes/nbef)
-ggsave(plot = last_plot(), file = here('output/Fig3_NBE_NBES.tiff'), width = 15, height = 9)
+ggsave(plot = last_plot(), file = here('output/Figure3_NBE_NBES.tiff'), width = 15, height = 9)
 
 
 
@@ -514,7 +514,7 @@ RR1+RR2+RR4+RR5+
   plot_annotation(tag_levels = "a", tag_prefix = '(',
                   tag_sep = '', tag_suffix = ')')
 
-ggsave(plot = last_plot(), file = here('output/Fig2_ObservedStab_patchwork.tiff'),width = 11, height = 8)
+ggsave(plot = last_plot(), file = here('output/Figure2_ObservedStab.tiff'),width = 11, height = 8)
 
 
   
@@ -633,6 +633,6 @@ ggplot(.) +
 NBESCV
 
 cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('output/FigS2_NBESmetrics_overall.tiff'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS2_NBESmetrics.tiff'), width = 8, height = 6)
 
 

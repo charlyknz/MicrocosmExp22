@@ -10,7 +10,7 @@ getwd()
 library(here)
 
 # 3. create an output folder in the MicrocosmExp22 folder, if you havent retrieved it from Github
-dir.create(here('output')) # all output will be stored here
+#dir.create(here('output')) # all output will be stored here
 
 
 

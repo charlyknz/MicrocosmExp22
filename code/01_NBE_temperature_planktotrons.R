@@ -50,4 +50,4 @@ plot <- ggplot(dataPlot, aes(x = datetime, y = actual_tempmiddle, color = treat)
   theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4))
 plot
-ggsave(plot = plot, file = here('output/FigS1_Temp_curves_exp22.tiff'), height = 12, width = 5)
+ggsave(plot = plot, file = here('output/ExtendedData_FigureS1_Temp_curves.tiff'), height = 12, width = 5)
