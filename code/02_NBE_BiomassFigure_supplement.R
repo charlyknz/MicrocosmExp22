@@ -69,7 +69,7 @@ Duoplot <- biomass %>%
         legend.title = element_text(size=16),
         legend.text = element_text(size=14))
 Duoplot
-ggsave(plot = Duoplot, file = here('output/FigS3_Duo_Biomass.png'), width = 12, height = 12)
+ggsave(plot = Duoplot, file = here('output/FigS3_Duo_Biomass.tiff'), width = 12, height = 12)
 
 #4 species
 Quattroplot <- biomass %>%
@@ -120,7 +120,7 @@ mixplot <- biomass %>%
 mixplot
 
 plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(7/10, 3/10),labels = c('(a)', '(b)'))
-ggsave(plot = last_plot(), file = here('output/FigS4_QuattroMixBiomass.png'), width = 12, height = 12.5)
+ggsave(plot = last_plot(), file = here('output/FigS4_QuattroMixBiomass.tiff'), width = 12, height = 12.5)
 
 # monocultures
 Mono <- biomass %>%
@@ -201,7 +201,7 @@ biomass1 %>%
         legend.title = element_text(size=16),
         legend.text = element_text(size=14))
 
-ggsave(plot = last_plot(), file = here('output/Fig1Biomass.png'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('output/Fig1Biomass.tiff'), width = 15, height = 15)
 
 
 

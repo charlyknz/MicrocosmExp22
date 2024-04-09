@@ -145,5 +145,5 @@ Corr.data <- netdiv %>%
   left_join(.,HectorRaw, by = c('combination', 'temp', 'rep', 'N'))
 
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')
-ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.png'))
+ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.tiff'))
 
