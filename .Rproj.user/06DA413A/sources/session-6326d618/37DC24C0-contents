@@ -4,7 +4,6 @@
 
 library(tidyverse)
 library(ggpubr)
-library(sjPlot)
 library(here)
 
 
@@ -31,8 +30,6 @@ netdiv$combination<-as.factor(netdiv$combination)
 aov1<-aov(NBE~temp*combination, netdiv)
 summary(aov1)
 
-tab_model(aov1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBES_aov.doc"))
-
 ggplot(netdiv, aes(y = NBE, x = as.factor(temp), fill=as.factor(N)))+
   geom_boxplot()
 
@@ -46,7 +43,6 @@ qqline(netdiv$NBE)
 test1 <- t.test(netdiv$NBE, mu = 0, alternative = "two.sided")
 test1
 
-tab_model(test1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBES_t-test.doc"))
 
 #### NBES: Presence/absence of species ~NBES ####
 # explore the interaction of temperature and species combinations
@@ -122,7 +118,6 @@ summary(HectorRaw)
 aov1<-aov(NetEffect~temp*combination, HectorRaw)
 summary(aov1)
 TukeyHSD(aov1)
-tab_model(aov1, digits = 2, show.df=T, show.est = T, show.stat =T,show.ci = FALSE, file = here("output/NBEonF_aov.doc"))
 
 
 ggplot(HectorRaw, aes(y = NetEffect, x = as.factor(temp), fill=as.factor(N)))+
@@ -151,7 +146,4 @@ Corr.data <- netdiv %>%
 
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')
 ggsave(plot = last_plot(), file = here('output/Correlation_NBE_NBES.png'))
-
-#### detach sjPlot package ####
-detach("package:sjPlot", unload=TRUE)
 

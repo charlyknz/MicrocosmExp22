@@ -32,7 +32,6 @@ source(here('code/01_NBE_temperature_planktotrons.R'))
 ### Run Stats ####
 
 # Please run separately by actively open the R script
-# within R code ANOVA tables will be stored in output folder
 source(here("code/05_NBE_Statistics_Contrasts.R"))
 
 
