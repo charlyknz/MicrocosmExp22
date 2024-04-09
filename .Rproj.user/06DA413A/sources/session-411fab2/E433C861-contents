@@ -1,5 +1,5 @@
 # README NBES 
-R script to quantify the net biodiversity effect in a phytoplankton microcosm experiment
+R script to quantify the net biodiversity effect on ecological stability in a phytoplankton microcosm experiment
 
 ## To run the code..
 Please store the contents of the repository on your device & run Main.R
