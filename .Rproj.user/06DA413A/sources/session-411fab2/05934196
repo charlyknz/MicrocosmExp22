@@ -3,7 +3,7 @@
     "path": "~/Desktop/phD/Exp22/MicrocosmExp22/code/02_NBE_BiomassFigure_supplement.R",
     "project_path": "code/02_NBE_BiomassFigure_supplement.R",
     "type": "r_source",
-    "hash": "2575341638",
+    "hash": "433730803",
     "contents": "",
     "dirty": false,
     "created": 1712656523127.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "122,60",
-        "scrollLine": "138"
+        "cursorPosition": "203,54",
+        "scrollLine": "196"
     },
     "folds": "",
-    "lastKnownWriteTime": 1712656952,
+    "lastKnownWriteTime": 1712665203,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1712656952674,
+    "last_content_update": 1712665203533,
     "read_only": false,
     "read_only_alternatives": []
 }

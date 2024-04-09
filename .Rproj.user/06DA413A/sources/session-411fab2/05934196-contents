@@ -201,7 +201,7 @@ biomass1 %>%
         legend.title = element_text(size=16),
         legend.text = element_text(size=14))
 
-ggsave(plot = last_plot(), file = here('output/Figure1_Biomass.tiff'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('output/Figure2_Biomass.tiff'), width = 15, height = 15)
 
 
 
