@@ -329,7 +329,7 @@ p1<-d3%>%
   mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
   ggplot(., aes(x = combination, y = mean.total.DRR,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_point(size = 2.5, alpha = 0.9)+
+  geom_point(size = 2.5, alpha = 1)+
   geom_errorbar(aes(ymin = mean.total.DRR - se, ymax = mean.total.DRR +se), width = .3, alpha = .7)+
   labs(x = 'Species Combination', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
   # scale_x_continuous(limits = c(0.5,5.5), breaks = c(2,4,5))+
@@ -384,7 +384,7 @@ nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust 
 source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 
 (nbes/nbef)
-ggsave(plot = last_plot(), file = here('output/Figure4_NBE_NBES.tiff'), width = 15, height = 9)
+ggsave(plot = last_plot(), file = here('output/Figure5_NBE_NBES.tiff'), width = 15, height = 9)
 
 
 
@@ -514,7 +514,7 @@ RR1+RR2+RR4+RR5+
   plot_annotation(tag_levels = "a", tag_prefix = '(',
                   tag_sep = '', tag_suffix = ')')
 
-ggsave(plot = last_plot(), file = here('output/Figure3_ObservedStab.tiff'),width = 11, height = 8)
+ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.tiff'),width = 11, height = 8)
 
 
   
@@ -633,6 +633,6 @@ ggplot(.) +
 NBESCV
 
 cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS2_NBESmetrics.tiff'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS1_NBESmetrics.tiff'), width = 8, height = 6)
 
 

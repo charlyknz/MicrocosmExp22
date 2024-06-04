@@ -49,8 +49,8 @@ biomass$speciesID[biomass$speciesID=='ThalaCux'] <- 'Thalassionema'
 Duoplot <- biomass %>%
   filter(species == 'duo') %>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
-  geom_line(alpha = 0.8, linetype = 'dashed')+
-  geom_point(alpha = 0.8)+
+  geom_line(alpha = 1, linetype = 'dashed')+
+  geom_point(alpha = 1, size = 1.5)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
   labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
   facet_grid(~combination~temp, scales = 'free')+
@@ -69,14 +69,14 @@ Duoplot <- biomass %>%
         legend.title = element_text(size=16),
         legend.text = element_text(size=14))
 Duoplot
-ggsave(plot = Duoplot, file = here('output/ExtendedData_FigureS3_Duo_Biomass.tiff'), width = 12, height = 12)
+ggsave(plot = Duoplot, file = here('output/ExtendedData_FigureS2_Duo_Biomass.tiff'), width = 12, height = 12)
 
 #4 species
 Quattroplot <- biomass %>%
   filter(species == 'quattro') %>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
-  geom_line(alpha = 0.8, linetype = 'dashed')+
-  geom_point(alpha = 0.8)+
+  geom_line(alpha = 1, linetype = 'dashed')+
+  geom_point(alpha = 1, size = 1.5)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
   labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature')+
   facet_grid(~combination~temp, scales = 'free')+
@@ -97,8 +97,8 @@ Quattroplot
 mixplot <- biomass %>%
   filter(!species%in%c('duo','mono', 'quattro') )%>%
   ggplot(., aes( x = day, y = meanV, color = speciesID, group = speciesID))+
-  geom_line(alpha = 0.8, linetype = 'dashed')+
-  geom_point(alpha = 0.8)+
+  geom_line(alpha = 1, linetype = 'dashed')+
+  geom_point(alpha = 1, , size = 1.5)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
   labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Species')+
   facet_grid(~combination~temp, scales = 'free_y')+
@@ -120,14 +120,14 @@ mixplot <- biomass %>%
 mixplot
 
 plot_grid(Quattroplot, mixplot, ncol = 1, rel_heights = c(7/10, 3/10),labels = c('(a)', '(b)'))
-ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS4_QuattroMixBiomass.tiff'), width = 12, height = 12.5)
+ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS3_QuattroMixBiomass.tiff'), width = 12, height = 12.5)
 
 # monocultures
 Mono <- biomass %>%
   filter(species == 'mono') %>%
   ggplot(., aes( x = day, y = meanV, color = temp, group = temp, shape = temp))+
-  geom_line(alpha = 0.8, linetype = 'dashed')+
-  geom_point(alpha = 0.8)+
+  geom_line(alpha = 1, linetype = 'dashed')+
+  geom_point(alpha = 1, size = 1.5)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
   labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
   facet_wrap(~speciesID,nrow = 1, scales = 'free_y')+
@@ -178,8 +178,8 @@ biomass1$combination <- factor(as.factor(biomass1$combination) ,
 
 biomass1 %>%
   ggplot(., aes( x = day, y = meanV, color = temp, group = temp, shape = temp))+
-  geom_line(alpha = 0.8, linetype = 'dashed')+
-  geom_point(alpha = 0.8)+
+  geom_line(alpha = 1, linetype = 'dashed')+
+  geom_point(alpha = 1, size = 1.5)+
   geom_errorbar(aes(ymin = meanV-seV, ymax = meanV+seV), width = .8)+
   labs(y =  expression(Total~Biovolume~'['~mm^3~'/'~ml~']'), x = 'Time [days]', color = 'Temperature', shape =  'Temperature')+
   facet_wrap(~combination, ncol = 5, scales = 'free')+
@@ -201,7 +201,7 @@ biomass1 %>%
         legend.title = element_text(size=16),
         legend.text = element_text(size=14))
 
-ggsave(plot = last_plot(), file = here('output/Figure2_Biomass.tiff'), width = 15, height = 15)
+ggsave(plot = last_plot(), file = here('output/Figure3_Biomass.tiff'), width = 15, height = 15)
 
 
 

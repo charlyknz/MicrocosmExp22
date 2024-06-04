@@ -212,7 +212,7 @@ plot245<- allNetBiodiv %>%
   ggplot(., aes(x = combination, y = mean.effect,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .7 )+
-  geom_point(size = 2.5, alpha = 0.9)+
+  geom_point(size = 2.5, alpha = 1)+
   labs(x = 'Species Combination', y = expression(Net~Biodiversity~Effect~on~Functioning), color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
