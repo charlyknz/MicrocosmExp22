@@ -182,12 +182,12 @@ NBE<-allNetBiodiv%>%
   scale_shape_manual(values= shape_values)+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(2, 'cm'),
@@ -209,6 +209,7 @@ plot245<- allNetBiodiv %>%
   summarise(mean.effect = mean(NetEffect, na.rm = T),
             sd.effect = sd(NetEffect,na.rm = T),
             se.effect = sd.effect/sqrt(n()))%>%
+  filter(N!= 5)%>%
   ggplot(., aes(x = combination, y = mean.effect,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_errorbar(aes(ymin = mean.effect - se.effect, ymax = mean.effect +se.effect), width = .3, alpha = .7 )+
@@ -216,15 +217,16 @@ plot245<- allNetBiodiv %>%
   labs(x = 'Species Combination', y = expression(Net~Biodiversity~Effect~on~Functioning), color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
+  scale_y_continuous(labels = function(x) format(x, nsmall = 1))+
   facet_wrap(~N, scales = 'free_x', labeller = labeller(N = labels_plot245))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
@@ -238,10 +240,11 @@ legend_f<- get_legend(plot245)
 nbef <- cowplot::plot_grid( NBE+theme(legend.position = 'none'),
                    plot245+theme(legend.position = 'none'),
                    legend_f,
-                   hjust = -0.05, 
+                   hjust = -1.1, 
                    ncol = 3,
                    labels = c('(c)', '(d)'), 
-                   rel_widths = c( 2/7,4/7,1/7))
+                   rel_widths = c( 2/7,4/7,1/7), 
+                   rel_heights = c(10,0.2))
 #ggsave(plot = last_plot(), file = here('output/NBEonF.png'), width = 14, height = 4.5)
 
 

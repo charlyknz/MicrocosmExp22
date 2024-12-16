@@ -327,6 +327,7 @@ p1<-d3%>%
             sd = sd(NBE,na.rm = T),
             se = sd/sqrt(n()))%>%
   mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
+  filter(N!= 5)%>%
   ggplot(., aes(x = combination, y = mean.total.DRR,color = temp, shape = temp))+
   geom_hline(yintercept = 0, color = 'darkgrey')+
   geom_point(size = 2.5, alpha = 1)+
@@ -337,12 +338,12 @@ p1<-d3%>%
   facet_grid(~label, scales = 'free')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
@@ -362,20 +363,27 @@ p2 <- d3%>%
   geom_errorbar(aes(x=as.factor(N),ymin = mean.total.DRR - se, ymax = mean.total.DRR +se, col=temp), alpha = 0.7, width = .1)+
   labs(x = 'Species Richness', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
   scale_colour_brewer(palette = "Set1")+
+  scale_y_continuous(labels = function(x) format(x, nsmall = 1))+
   theme_bw()+
   theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 p2
 
 #create plot grird
-nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),legendb,hjust = -0.1, labels = c('(a)', '(b)'), ncol = 3,rel_widths = c( 2/7,4/7,1/7), rel_heights = c(10,0.2))
+nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),
+                            legendb,
+                            hjust = -1.1, 
+                            labels = c('(a)', '(b)'), 
+                            ncol = 3,
+                            rel_widths = c( 2/7,4/7,1/7), 
+                            rel_heights = c(10,0.2))
 
 
 #### Merge NBES with NBE on Functioning ####

@@ -1,0 +1,122 @@
+#### look at NBES slopes ####
+# 09.12.2024 by Charlotte Kunze
+
+library(tidyverse)
+library(here)
+
+data <- read.csv(('Data/NBES_revisited.csv')) %>%
+  select(-X) %>%
+  mutate(communityID = paste(rep, temp,sep ='_'))
+
+#### Resilience slope ####
+USI <- unique(data$communityID)
+
+#create an empty data frame
+slope<-tibble()
+
+for(i in 1:length(USI)){
+  temp<-data[data$communityID==USI[i], ]#creates a temporary data frame for each case
+  lm1<-lm(NBE~log(N), temp)#makes a linear regression
+  intcp.lm <- coef(summary(lm1))[1, 1]#selects the intercept
+  se.intcp.lm<- coef(summary(lm1))[1, 2]#selects its standard error
+  resil.lm <- coef(summary(lm1))[2, 1]#selects the slope
+  se.slp.lm<- coef(summary(lm1))[2, 2]#selects its standard error
+  sd.res.lm<- sd(resid(lm1)) #selects the standard deviation of the residuals
+  slope<-rbind(slope,data.frame(temp[1,c(2,3,8)],resil.lm,intcp.lm,se.intcp.lm,sd.res.lm,se.slp.lm))
+  rm(temp)
+}
+names(slope)
+
+
+#### Start ####
+ggplot(slope, aes(x = temp, y = resil.lm))+
+  geom_point()
+
+data1 <- data%>%
+ left_join(., slope)
+
+data1%>%
+  #filter(resil.lm <0) %>%
+  group_by(N, temp, communityID) %>%
+  reframe(mean = mean(NBE))%>%
+  ggplot(., aes (x = N, y = mean, color = communityID, group = communityID))+
+  geom_hline(yintercept = 0)+
+  geom_point()+
+  geom_line()+
+  facet_grid(~temp)
+ # theme(legend.position = 'none')
+ggsave(plot = last_plot(), file = here('output/NBES_richness_slope.png'), width = 8, height = 4)        
+
+
+##### TPC- Grand Mean ####
+
+library(readxl)
+anovaOutput <- read_excel("output/anovaOutput.xlsx") %>%
+  select(-'...3')
+TPC<- read_excel("~/Desktop/phD/Exp22/Experiments/CharlyTPC2021/createTPC/Species_TPC_maxBiom.xlsx")
+
+str(anovaOutput)
+str(TPC)
+
+all_tpc_output <- left_join(TPC, anovaOutput) %>%
+  mutate(q= ifelse(p.value<0.05, 1,0)) %>%
+  drop_na(p.value)
+ggplot(all_tpc_output, aes(x = topt, y = sum_sq, color = treatment, group = treatment))+
+  geom_point(size =2)+
+  facet_grid(~richness)+
+  theme_bw()
+ggsave(plot=last_plot(), file = here('output/SumSqAnova_Topt-temp.png'))
+
+
+grandMeanA <- data1 %>%
+  filter(str_detect(combination, 'A'))%>%
+  group_by(N, temp)%>%
+  reframe(mean_NBES = mean(NBE),
+          species = paste('A'))
+  
+grandMeanD <- data1 %>%
+  filter(str_detect(combination, 'D'))%>%
+  group_by(N, temp)%>%
+  reframe(mean_NBES = mean(NBE),
+          species = paste('D'))
+
+grandMeanG <- data1 %>%
+  filter(str_detect(combination, 'G'))%>%
+  group_by(N, temp)%>%
+  reframe(mean_NBES = mean(NBE),
+          species = paste('G'))
+
+grandMeanR <- data1 %>%
+  filter(str_detect(combination, 'R'))%>%
+  group_by(N, temp)%>%
+  reframe(mean_NBES = mean(NBE),
+          species = paste('R'))
+
+grandMeanT <- data1 %>%
+  filter(str_detect(combination, 'T'))%>%
+  group_by(N, temp)%>%
+  reframe(mean_NBES = mean(NBE),
+          species = paste('T'))
+
+all_grandMean <- grandMeanA %>%
+  bind_rows(., grandMeanD)%>%
+  bind_rows(., grandMeanG)%>%
+  bind_rows(., grandMeanR)%>%
+  bind_rows(., grandMeanT) 
+
+GrandMean <- data1 %>%
+  group_by(N, temp)%>%
+  reframe(gMean = mean(NBE)) %>%
+  right_join(., all_grandMean) %>%
+  mutate(devFromGrandMean = mean_NBES-gMean) %>%
+  filter(N != 5) %>%
+  left_join(., TPC)
+
+ggplot(GrandMean, aes( y = topt, x = devFromGrandMean, color = N))  +
+  geom_vline(xintercept = 0)+
+  geom_point(size = 2)+
+  labs(x = 'Influence on NBES', y='Topt', color = 'Treatment')+
+  facet_wrap(~temp, scales = 'free_y')+
+  theme_bw()+
+  theme(legend.position = 'bottom')
+ggsave(plot=last_plot(), file = here('output/topt_NBESeffect-temp.png'), width = 8, height = 5)
