@@ -112,11 +112,38 @@ GrandMean <- data1 %>%
   filter(N != 5) %>%
   left_join(., TPC)
 
-ggplot(GrandMean, aes( y = topt, x = devFromGrandMean, color = N))  +
+GrandMean$temp<-factor(GrandMean$temp, levels = c("Increase" ,'Fluctuation', "Increase + Fluctuation"))
+GrandMean$interaction <- NA
+GrandMean$interaction <- paste('Experimental communities')
+pa <- GrandMean%>%
+  filter(temp == 'Increase')%>%
+  ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
   geom_vline(xintercept = 0)+
   geom_point(size = 2)+
-  labs(x = 'Influence on NBES', y='Topt', color = 'Treatment')+
-  facet_wrap(~temp, scales = 'free_y')+
+  labs(x = 'Influence on NBES', y='Topt', title = 'Increase', color = 'Richness')+
+  facet_grid(~interaction)+
   theme_bw()+
-  theme(legend.position = 'bottom')
-ggsave(plot=last_plot(), file = here('output/topt_NBESeffect-temp.png'), width = 8, height = 5)
+  theme(legend.position = 'none')
+
+pb <-GrandMean%>%
+  filter(temp == 'Fluctuation')%>%
+  ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
+  geom_vline(xintercept = 0)+
+  geom_point(size = 2)+
+  labs(x = 'Influence on NBES', y='Topt', title = 'Fluctuation', color = 'Richness')+
+  facet_grid(~interaction)+
+  theme_bw()+
+  theme(legend.position = 'none')
+
+pc <-GrandMean%>%
+  filter(temp == 'Increase + Fluctuation')%>%
+  ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
+  geom_vline(xintercept = 0)+
+  geom_point(size = 2)+
+  labs(x = 'Influence on NBES', y='Topt', title = 'Increase + Fluctuation', color = 'Richness')+
+  facet_grid(~interaction)+
+  theme_bw()+
+  theme(legend.position = 'none')
+
+cowplot::plot_grid(pa, pb, pc, ncol = 1,labels = c('(d)', '(e)', '(f)'))
+ggsave(plot=last_plot(), file = here('output/topt_NBESeffect-temp.png'), width = 3, height = 8)
