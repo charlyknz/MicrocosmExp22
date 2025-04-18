@@ -100,6 +100,8 @@ summary(aov10)
 summary.table<-tibble()
 summary.table  <- anova(aov10)["Sum Sq"]
 
+cor(inc4[,10:14])
+
 #### NBES: Contrasts ####
 # contrast 1 (con): 2 versus 4 species
 

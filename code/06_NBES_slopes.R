@@ -3,7 +3,9 @@
 
 library(tidyverse)
 library(here)
+library(readxl)
 
+### import data ###
 data <- read.csv(('Data/NBES_revisited.csv')) %>%
   select(-X) %>%
   mutate(communityID = paste(rep, temp,sep ='_'))
@@ -45,17 +47,10 @@ data1%>%
   geom_line()+
   facet_grid(~temp)
  # theme(legend.position = 'none')
-ggsave(plot = last_plot(), file = here('output/NBES_richness_slope.png'), width = 8, height = 4)        
 
 
 ##### TPC- Grand Mean ####
-
-library(readxl)
-anovaOutput <- read_excel("output/anovaOutput.xlsx") %>%
-  select(-'...3')
 TPC<- read_excel("~/Desktop/phD/Exp22/Experiments/CharlyTPC2021/createTPC/Species_TPC_maxBiom.xlsx")
-
-str(anovaOutput)
 str(TPC)
 
 all_tpc_output <- left_join(TPC, anovaOutput) %>%
@@ -65,7 +60,6 @@ ggplot(all_tpc_output, aes(x = topt, y = sum_sq, color = treatment, group = trea
   geom_point(size =2)+
   facet_grid(~richness)+
   theme_bw()
-ggsave(plot=last_plot(), file = here('output/SumSqAnova_Topt-temp.png'))
 
 
 grandMeanA <- data1 %>%
@@ -115,35 +109,63 @@ GrandMean <- data1 %>%
 GrandMean$temp<-factor(GrandMean$temp, levels = c("Increase" ,'Fluctuation', "Increase + Fluctuation"))
 GrandMean$interaction <- NA
 GrandMean$interaction <- paste('Experimental communities')
+
+####plot grand mean ####
+# palette
+colours<-c("darkblue", "skyblue", '#EFC000FF', 'darkorange')
 pa <- GrandMean%>%
   filter(temp == 'Increase')%>%
   ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
   geom_vline(xintercept = 0)+
   geom_point(size = 2)+
-  labs(x = 'Influence on NBES', y='Topt', title = 'Increase', color = 'Richness')+
+  labs(x = 'Influence on NBES',  title = 'Increase', color = 'Richness')+
+  ylab(bquote(b[opt]))+
   facet_grid(~interaction)+
+  scale_color_gradientn(colours = colours)+
   theme_bw()+
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.text.x  = element_text(size = 12))
+
 
 pb <-GrandMean%>%
   filter(temp == 'Fluctuation')%>%
   ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
   geom_vline(xintercept = 0)+
   geom_point(size = 2)+
-  labs(x = 'Influence on NBES', y='Topt', title = 'Fluctuation', color = 'Richness')+
+  labs(x = 'Influence on NBES',  title = 'Fluctuation', color = 'Richness')+
+  scale_color_gradientn(colours = colours)+
+  ylab(bquote(b[opt]))+
   facet_grid(~interaction)+
   theme_bw()+
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.text.x  = element_text(size = 12))
+  
 
 pc <-GrandMean%>%
   filter(temp == 'Increase + Fluctuation')%>%
   ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +
   geom_vline(xintercept = 0)+
   geom_point(size = 2)+
-  labs(x = 'Influence on NBES', y='Topt', title = 'Increase + Fluctuation', color = 'Richness')+
+  labs(x = 'Influence on NBES',  title = 'Increase + Fluctuation', color = 'Richness')+
+  ylab(bquote(b[opt]))+
   facet_grid(~interaction)+
+  scale_color_gradientn(colours = colours)+
   theme_bw()+
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.text.x  = element_text(size = 12))
+
 
 cowplot::plot_grid(pa, pb, pc, ncol = 1,labels = c('(d)', '(e)', '(f)'))
-ggsave(plot=last_plot(), file = here('output/topt_NBESeffect-temp.png'), width = 3, height = 8)
+ggsave(plot=last_plot(), file = here('output/Figure3_topt_NBESeffect-temp.png'), width = 3, height = 8)

@@ -17,7 +17,7 @@ expData<-read.csv('Data/AllRawData_InclBV.csv') %>%
 names(expData)
 
 #### colors and shapes ####
-temp1Palette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
+temp1Palette <- c('black',"#E41A1C" ,"#377EB8" ,'#c7b514' )
 shape_values <- c(23,16, 17, 15)
 
 #### Net Biodiversity effect on Functioning (Hector & Loreau, 2001) ####
@@ -74,7 +74,7 @@ NBE_duo <- left_join(RelBV_t0_,counts_mono_tmax_, by = c( 'temp', 'speciesID', '
          )
 
 #### Plot 2 species ####
-temp1Palette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
+temp1Palette <- c('black',"#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 unique(NBE_duo$temp)
 
@@ -187,7 +187,7 @@ NBE<-allNetBiodiv%>%
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 14))+
+        strip.text.x  = element_text(size = 16))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(2, 'cm'),
@@ -226,11 +226,11 @@ plot245<- allNetBiodiv %>%
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 14))+
+        strip.text.x  = element_text(size = 16))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))+
+        legend.text = element_text(size=12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 plot245
 

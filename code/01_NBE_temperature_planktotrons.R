@@ -21,7 +21,7 @@ temp <- df %>%
 
 
 # set color palette
-tempPalette <- c('black' ,"#E41A1C","#377EB8","#4DAF4A" ) # temp treatments
+tempPalette <- c('black' ,"#E41A1C","#377EB8",'#c7b514' ) # temp treatments
 
 # order mesocosms after treatments
 dataPlot <- temp%>%

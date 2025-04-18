@@ -297,7 +297,7 @@ cowplot::plot_grid(BV_t0_duo, BV_t0_mix, labels = c('(a)', '(b)'), ncol = 1)
 
 
 #### Merge Stabilities ####
-tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
+tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 #remove duplicates created during AUC loop
 d1 <- stab.auc %>%
@@ -316,8 +316,8 @@ write.csv(d3, file = here('Data/NBES.csv'))
 
 
 #### START plots####
-tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,"#4DAF4A" )
-
+tempPalette <- c('black',"#E41A1C" ,"#377EB8" ,'#c7b514' )
+tempPalette1<- c("#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 #### NBES plot####
 
@@ -334,7 +334,7 @@ p1<-d3%>%
   geom_errorbar(aes(ymin = mean.total.DRR - se, ymax = mean.total.DRR +se), width = .3, alpha = .7)+
   labs(x = 'Species Combination', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
   # scale_x_continuous(limits = c(0.5,5.5), breaks = c(2,4,5))+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   facet_grid(~label, scales = 'free')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
@@ -343,12 +343,12 @@ p1<-d3%>%
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 14))+
+        strip.text.x  = element_text(size = 16))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))
+        legend.text = element_text(size=12))
 p1
 legendb<-get_legend(p1)
 
@@ -362,7 +362,7 @@ p2 <- d3%>%
   geom_point(aes(x = as.factor(N), y = mean.total.DRR, color=temp, shape=temp),size = 3.5, alpha = 0.9)+
   geom_errorbar(aes(x=as.factor(N),ymin = mean.total.DRR - se, ymax = mean.total.DRR +se, col=temp), alpha = 0.7, width = .1)+
   labs(x = 'Species Richness', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))+
   theme_bw()+
   theme(legend.position = 'none',
@@ -372,7 +372,7 @@ p2 <- d3%>%
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
         axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 p2
 
@@ -424,22 +424,22 @@ RR1 <- MonoData %>%
   geom_errorbar(aes(x = combination, y = mean,ymin = mean - se, ymax = mean +se, color = temp), width = .3, alpha = .7)+
   geom_point(aes(x = combination, y = mean, color = temp, shape = temp),size = 2.5, alpha = .6)+
   labs(x = 'Combination', y = 'Observed OEV', color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   facet_wrap(~label,  ncol =2)+
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))
+        legend.text = element_text(size=12))
 RR1
 
 RR2 <- MonoData %>%
@@ -449,22 +449,22 @@ RR2 <- MonoData %>%
   geom_errorbar(aes(x = combination, y = mean,ymin = mean - se, ymax = mean +se, color = temp), width = .3, alpha = .7)+
   geom_point(aes(x = combination, y = mean, color = temp, shape = temp),size = 2.5, alpha = .6)+
   labs(x = 'Combination', y = '', color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   facet_wrap(~label,  ncol =2)+
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))
+        legend.text = element_text(size=12))
 RR2
 
 RR4 <- MonoData %>%
@@ -474,47 +474,47 @@ RR4 <- MonoData %>%
   geom_errorbar(aes(x = combination, y = mean,ymin = mean - se, ymax = mean +se, color = temp), width = .3, alpha = .7)+
   geom_point(aes(x = combination, y = mean, color = temp, shape = temp),size = 2.5, alpha = .6)+
   labs(x = 'Combination', y = 'Observed OEV', color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   facet_wrap(~label,  ncol =2)+
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))
+        legend.text = element_text(size=12))
 RR4
 
 RR5 <- MonoData %>%
   filter(label == '5 species')%>%
   ggplot(.)+
   geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_errorbar(aes(x = combination, y = mean,ymin = mean - se, ymax = mean +se, color = temp), width = .3, alpha = .7)+
+  geom_errorbar(aes(x = combination, y = mean,ymin = mean - se, ymax = mean +se, color = temp), width = .1, alpha = .7)+
   geom_point(aes(x = combination, y = mean, color = temp, shape = temp),size = 2.5, alpha = .6)+
   labs(x = 'Combination', y = '', color = 'Treatment', shape = 'Treatment')+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   facet_wrap(~label,  ncol =2)+
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 10,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 12))+
+        strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
         legend.key.size = unit(1, 'cm'),
         legend.title = element_text(size=13),
-        legend.text = element_text(size=11))
+        legend.text = element_text(size=12))
 RR5
 
 RR1+RR2+RR4+RR5+
@@ -555,7 +555,7 @@ NBESresistance <- all_resistance  %>%
   geom_point(aes( x = N, y = Mean, color = temp, shape = temp),  size = 3)+
     facet_wrap(~temp)+
   labs(x = 'Species Richness', y=expression(NBES[resistance]))+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   theme_bw()+
   theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
@@ -627,7 +627,7 @@ ggplot(.) +
   geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV,color = temp),width = 0.3, alpha = 0.8)+
   facet_wrap(~temp)+
   labs(x = 'Species Richness', y=expression(NBES[CV]))+
-  scale_colour_brewer(palette = "Set1")+
+  scale_color_manual(values = tempPalette1)+
   theme_bw()+
   theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
@@ -641,6 +641,6 @@ ggplot(.) +
 NBESCV
 
 cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS1_NBESmetrics.tiff'), width = 8, height = 6)
+ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS5_NBESmetrics.tiff'), width = 8, height = 6)
 
 
