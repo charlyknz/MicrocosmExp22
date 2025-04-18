@@ -53,15 +53,6 @@ data1%>%
 TPC<- read_excel("~/Desktop/phD/Exp22/Experiments/CharlyTPC2021/createTPC/Species_TPC_maxBiom.xlsx")
 str(TPC)
 
-all_tpc_output <- left_join(TPC, anovaOutput) %>%
-  mutate(q= ifelse(p.value<0.05, 1,0)) %>%
-  drop_na(p.value)
-ggplot(all_tpc_output, aes(x = topt, y = sum_sq, color = treatment, group = treatment))+
-  geom_point(size =2)+
-  facet_grid(~richness)+
-  theme_bw()
-
-
 grandMeanA <- data1 %>%
   filter(str_detect(combination, 'A'))%>%
   group_by(N, temp)%>%

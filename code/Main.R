@@ -23,8 +23,10 @@ source(here("code/02_NBE_BiomassFigure_supplement.R"))
 # Create NBES Fig 2 & 3 + Fig S1
 source(here("code/03_NBES_calculation.R"))
 # Note: Within the code above the following is run to create the NBES/NBE plots 
-# source(here("~/Desktop/Exp22/MicrocosmExp22/code/05_NBE_HectorLoreau_NetBiodivEffect.R"))
+# source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 
+# calculate influence on grand mean
+source(here('code/06_NBES_slopes.R'))
 
 # Create temperature curves for supplements
 source(here('code/01_NBE_temperature_planktotrons.R'))
