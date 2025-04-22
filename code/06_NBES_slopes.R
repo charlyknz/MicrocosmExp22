@@ -94,7 +94,7 @@ GrandMean <- data1 %>%
   reframe(gMean = mean(NBE)) %>%
   right_join(., all_grandMean) %>%
   mutate(devFromGrandMean = mean_NBES-gMean) %>%
-  filter(N != 5) %>%
+ # filter(N != 5) %>%
   left_join(., TPC)
 
 GrandMean$temp<-factor(GrandMean$temp, levels = c("Increase" ,'Fluctuation', "Increase + Fluctuation"))
