@@ -1,4 +1,4 @@
-# README NBES 
+# README  
 R script to quantify the net biodiversity effect on ecological stability in a phytoplankton microcosm experiment. Data are stored on Figshare: 10.6084/m9.figshare.25568490
 
 
