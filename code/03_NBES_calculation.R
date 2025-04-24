@@ -392,7 +392,7 @@ nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),
 source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 
 (nbes/nbef)
-ggsave(plot = last_plot(), file = here('output/Figure5_NBE_NBES.tiff'), width = 15, height = 9)
+ggsave(plot = last_plot(), file = here('output/Figure5_NBE_NBES.pdf'), width = 15, height = 9)
 
 
 
@@ -522,7 +522,7 @@ RR1+RR2+RR4+RR5+
   plot_annotation(tag_levels = "a", tag_prefix = '(',
                   tag_sep = '', tag_suffix = ')')
 
-ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.tiff'),width = 11, height = 8)
+ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.pdf'),width = 11, height = 8)
 
 
   
