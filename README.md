@@ -7,9 +7,8 @@ Please store the contents of the repository on your device, open the Rproject & 
 
 
 ## R Session info
-R version 4.3.2 (2023-10-31)
-Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS Sonoma 14.1.2
+R version R version 4.4.3
+Running under: macOS Sequoia 15.3.2
 
 Matrix products: default
 BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
@@ -36,54 +35,11 @@ locale:
 
 ### 04_NBE_HectorLoreau_NetBiodivEffect.R: calculation of the net biodiversity effect on ecosystem functioning after Loreau and Hector (2001). 
 
-### 03_NBE_Statistics_Contrasts.R: Statistics introduced to analyse the influence of temperature and species composition on the NBES as well as the net biodiversity effect on functioning. 
+### 05_NBE_Statistics_Contrasts.R: Statistics introduced to analyse the influence of temperature and species composition on the NBES as well as the net biodiversity effect on functioning. 
 
-
-## Files:
-### AllRawData_InclBV.csv: Created file containing merged raw data including calculated cell Volume from Biovolume of species. 
-
-no: unique ID of N x temp combination 
- 
-speciesID: species-specific information
- 
- combination: species combinations, see MS for abbreviations
- 
- temp: temperature treatment, i.e. fluctuation, increase, increase and fluctuation 
- 
-  rep: replicate no 
-  
-  sampling: sampling number - 1,3,6,9,12,15. We sampled every 4th day.
-  
-
-### NBES.csv:  Data on Net Biodiversity effect on stability
-
-combination: species combinations, see MS for abbreviations
-
-rep: replicate number (1-3)
-
-NBE: Net biodiversity effect 
-
-AUC.RR_exp: expected Stability 
-
-AUC.RR_obs: observed Stability
-
-N: Species richness level (ranging from 2-5)
-
-temp: temperature treatment, i.e. fluctuation, increase, increase and fluctuation 
+### 06_NBES_slopes: calculates influence of single species on NBES.
 
 
 
-  
-
-### NBEonFunctioning.csv: Data on Net Biodiversity effect on functioning
-
-combination: species combinations, see MS for abbreviations.
-
-rep: replicate number (1-3)
-
-NetEffect: Net biodiversity effect on functioning
-
-N: Species richness level (ranging from 2-5)
-
-temp: temperature treatment, i.e. control, fluctuation, increase, increase and fluctuation 
-  
+## Data
+### rawdata can be obtained from Figshare https://figshare.com/articles/journal_contribution/Github_files/25568490/3
