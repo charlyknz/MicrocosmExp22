@@ -6,7 +6,7 @@ library(here)
 library(readxl)
 
 ### import data ###
-data <- read.csv(('Data/NBES_revisited.csv')) %>%
+data <- read.csv(('Data/NBES.csv')) %>%
   select(-X) %>%
   mutate(communityID = paste(rep, temp,sep ='_'))
 
@@ -103,7 +103,7 @@ GrandMean$interaction <- paste('Experimental communities')
 
 ####plot grand mean ####
 # palette
-colours<-c("darkblue", "skyblue", '#EFC000FF', 'darkorange')
+colours<-c("darkblue", "skyblue", '#EFC000FF', '#DC4D01')
 pa <- GrandMean%>%
   filter(temp == 'Increase')%>%
   ggplot(., aes( y = topt, x = devFromGrandMean, color = N))  +

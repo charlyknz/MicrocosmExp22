@@ -5,6 +5,8 @@
 library(tidyverse)
 library(ggpubr)
 library(here)
+library(mgcv)
+library(rr2)
 
 
 #### data NBES ####
@@ -24,6 +26,116 @@ names(netdiv)
 
 # combination as factor for analysis
 netdiv$combination<-as.factor(netdiv$combination)
+netdiv$Nfac<-as.factor(netdiv$N)
+
+#### Mixed Model: NBES ~ SR * temperature ####
+#Step 1. Test possible cases:Fit models using REML (use ML in simplifications)
+M1 = lme(NBE ~ temp*Nfac, random = ~1|combination, method = 'REML', data = netdiv)
+M2 = lme(NBE ~ temp*Nfac, random = ~0+Nfac|combination, method = 'REML', data = netdiv)
+M3 = lme(NBE ~ temp*Nfac, random = ~Nfac|combination, method = 'REML',
+         control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = netdiv)
+
+#compare models
+anova(M1,M2, M3)
+
+#save fitted values
+netdiv$fit_InterceptOnly2 <- predict(M2)
+
+
+# mixed model vs. model without random component: gls 
+M0=gls(NBE~temp*Nfac, method="REML",data =netdiv, na.action=na.omit)
+anova(M2, M0) #gls is better
+
+#Autocorrelation test 
+plot(ACF(M2), alpha=0.05)
+
+#Residuals
+par(mfrow=c(1,1),cex.axis=1.2, cex.lab=1.5)
+plot(resid(M2, type = "normalized"), ylab="residuales")
+hist(resid(M2, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
+plot(fitted(M2),resid(M2, type = "normalized"),ylab="residuales")
+qqnorm(resid(M2, type = "normalized"), main=""); qqline(resid(M2, type = "normalized"))
+
+anova(M2)
+summary(M2)
+
+#### Singular nested models: combination as random effect nested in N ####
+### 3 singular models instead of 1 as the two fixed effects are correlated --> to decipher underlying mechanisms
+
+#read ZUUR et al. 2008
+
+# example: combination is nested within Nfac 
+
+## format variable
+names(netdiv)
+netdiv$temp <- as.factor(netdiv$temp)
+
+### fluctuation ###
+
+#random intercept
+flucM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML', data = subset(netdiv, temp == 'Fluctuation'))
+
+#random intercept and slope
+ctrl <- lmeControl(opt='optim'); 
+flucM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Fluctuation'))
+flucM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, 
+                                                              msMaxEval =5000), data = subset(netdiv, temp == 'Fluctuation'))
+
+#compare models
+anova(flucM1, flucM2, flucM3)
+
+#check output
+anova(flucM1)
+summary(flucM1)
+
+# to check explanatory power of fixed effects, use simple lm 
+flucM0 <- gls(NBE ~ Nfac, method = 'REML', data = subset(netdiv, temp == 'Fluctuation')) # 0 Model
+anova(flucM1, flucM0)
+
+rr2::R2_lik(flucM0)
+
+### increase ###
+
+#random intercept
+incM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML', data = subset(netdiv, temp == 'Increase'))
+
+#random intercept and slope
+incM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Increase'))
+incM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = subset(netdiv, temp == 'Increase'))
+
+#compare models
+anova(incM1, incM2, incM3)
+
+#check output
+anova(incM1)
+summary(incM1)
+
+# to check explanatory power of fixed effects, use simple lm 
+incM0 <- gls(NBE ~ Nfac, method = 'REML', data =  subset(netdiv, temp == 'Increase')) # 0 Model
+anova(incM1, incM0)
+
+rr2::R2_lik(incM0)
+
+### incfluc ###
+
+#random intercept
+incflucM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML',data = subset(netdiv, temp == 'Increase + Fluctuation'))
+
+#random intercept and slope
+incflucM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Increase + Fluctuation'))
+incflucM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = subset(netdiv, temp == 'Increase + Fluctuation'))
+
+#compare models
+anova(incflucM1, incflucM2, incflucM3)
+
+#check output
+anova(incflucM1)
+summary(incflucM1)
+
+# to check explanatory power of fixed effects, use simple lm 
+incflucM0 <- gls(NBE ~ Nfac, method = 'REML', data = subset(netdiv, temp == 'Increase + Fluctuation')) # 0 Model
+
+rr2::R2_lik(incflucM0)
 
 
 #### NBES: ANOVA temp combination ####
@@ -100,7 +212,7 @@ summary(aov10)
 summary.table<-tibble()
 summary.table  <- anova(aov10)["Sum Sq"]
 
-cor(inc4[,10:14])
+cor(inc4[,12:16])
 
 #### NBES: Contrasts ####
 # contrast 1 (con): 2 versus 4 species
@@ -164,6 +276,38 @@ hist(resid(aov1))
 hist(((HectorRaw$NetEffect)))
 qqnorm(HectorRaw$NetEffect)
 qqline(HectorRaw$NetEffect)
+
+
+#### Mixed Model: NBEF ~ SR * temperature ####
+#Step 1. Test possible cases:Fit models using REML (use ML in simplifications)
+H1 = lme(NetEffect ~ temp*N, random = ~1|combination, method = 'REML', data = HectorRaw)
+H2 = lme(NetEffect ~ temp*N, random = ~0+N|combination, method = 'REML', data = HectorRaw)
+H3 = lme(NetEffect ~ temp*N, random = ~N|combination, method = 'REML',
+         control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = HectorRaw)
+
+#compare models
+anova(H1,H2, H3)
+
+#save fitted values
+HectorRaw$fit_InterceptOnly2 <- predict(H1)
+
+
+# mixed model vs. model without random component: gls 
+M0=gls(NetEffect~temp*N, method="REML",data =HectorRaw, na.action=na.omit)
+anova(H1, M0) #gls is better
+
+#Autocorrelation test 
+plot(ACF(H1), alpha=0.05)
+
+#Residuals
+par(mfrow=c(1,1),cex.axis=1.2, cex.lab=1.5)
+plot(resid(H1, type = "normalized"), ylab="residuales")
+hist(resid(H1, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
+plot(fitted(H1),resid(H2, type = "normalized"),ylab="residuales")
+qqnorm(resid(H1, type = "normalized"), main=""); qqline(resid(H1, type = "normalized"))
+
+anova(H1)
+summary(H1)
 
 #### NBE on F: T-Test ####
 #test against zero

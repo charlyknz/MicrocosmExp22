@@ -39,13 +39,16 @@ treat <- expData %>%
 
 
 # relative biomass of species in mixture at t0
-RelBV_t0_ <- treat %>%
-  filter(sampling == 1) %>%
-  group_by(combination, temp, rep) %>%
+RelBV_t0_ <- expData %>%
+  filter(temp == 'CS') %>%
+  select(-no)%>%
+  group_by(combination, rep, sampling) %>%
   mutate(sum = sum(cellV_mm_ml, na.rm = T)) %>%
   ungroup() %>%
-  mutate(relBV = cellV_mm_ml/sum) %>%
-  select(combination, temp, speciesID, rep, relBV)
+  mutate(rep_relBV = cellV_mm_ml/sum) %>%
+  group_by(combination, sampling,speciesID ) %>%
+  reframe(relBV = mean(rep_relBV, na.rm = T)) %>% 
+  select(combination, speciesID, sampling,relBV)
 names(RelBV_t0_)
 
 
@@ -80,7 +83,7 @@ all <- mono %>%
   mutate(sumC = sum(Mix_C,na.rm = T),
          sumT = sum(Mix_T,na.rm = T)) %>%
   ungroup() %>%
-  left_join(., RelBV_t0_, by = c("combination", "temp","speciesID", 'rep' )) %>%
+  left_join(., RelBV_t0_, by = c("combination","speciesID","sampling" )) %>%
   mutate(exp = sumC*ratio*relBV)%>%
   mutate(RR_mono = (Mono_T - Mono_C)/(Mono_T+Mono_C),
          RR_obs = (Mix_T - Mix_C)/(Mix_T+Mix_C),
@@ -90,7 +93,8 @@ all <- mono %>%
   mutate(sumexp = sum(exp, na.rm = T),
          RR_ges_exp = (sumexp-sumC)/(sumexp+sumC))%>%
   ungroup()%>%
-  mutate(delta_ges = RR_ges_obs-RR_ges_exp) 
+  mutate(delta_ges = RR_ges_obs-RR_ges_exp,
+         delta_spp = Mix_T -exp) 
 
 #subset for resistance calculation
 resistance_duo <- all %>%
@@ -125,14 +129,16 @@ for(i in 1:length(USI)){
                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_mono <- auc(temp$sampling, temp$RR_mono, from = min(temp$sampling, na.rm = T), to = max(temp$sampling, na.rm = T),
                            type = c('linear'), absolutearea = F)
+    AUC.spp <- auc(temp$sampling, temp$delta_spp,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
+                   type = c("linear"),absolutearea = FALSE)
     NBE <- AUC.RR_obs - AUC.RR_exp
     stab.auc<-rbind(stab.auc,
-                    tibble(temp[1,c(1:3,7,8,24)],
+                    tibble(temp[1,c(1:3,7,8,25)],
                               NBE,
                               AUC.ges.RR,
                               AUC.RR_exp,
                               AUC.RR_obs, 
-                              AUC.RR_mono))
+                              AUC.RR_mono, AUC.spp))
     rm(temp)
   }
 }
@@ -155,7 +161,7 @@ all$temp[all$temp=='inc'] <- 'Increase'
 all$temp[all$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 BV_t0_duo <- all %>%
-  filter(sampling == 1 ) %>%
+  #filter(sampling == 1 ) %>%
   group_by(speciesID, combination,temp) %>%
   summarise(mean.BV = mean(relBV, na.rm = T)) %>%
   ggplot(. )+
@@ -193,15 +199,17 @@ mix_all <- mix %>%
 
 
 ### merge all df and calculate response ratios ###
-
-relBVt0 <- treat %>%
-  filter(species %in% c('MIX', 'quattro')) %>%
-  filter(sampling == 1) %>%
-  group_by( combination, temp, rep) %>%
+relBVt0 <- expData %>%
+  filter(temp =="CS",species %in% c('MIX', 'quattro')) %>%
+  group_by(combination, rep, sampling) %>%
   mutate(sum = sum(cellV_mm_ml, na.rm = T)) %>%
   ungroup() %>%
-  mutate(relBV = cellV_mm_ml/sum) %>%
-  select(combination, temp, speciesID, rep, relBV)
+  mutate(rep_relBV = cellV_mm_ml/sum) %>%
+  group_by(combination, sampling, species,speciesID ) %>%
+  reframe(relBV = mean(rep_relBV, na.rm = T)) %>% 
+  select(combination, speciesID, sampling,relBV)
+names(relBVt0)
+
 
 allMix <- mono %>%
   select(-combination)%>%
@@ -212,7 +220,7 @@ allMix <- mono %>%
   mutate(sumC = sum(Mix_C,na.rm = T),
          sumT = sum(Mix_T,na.rm = T)) %>%
   ungroup() %>%
-  left_join(., relBVt0, by = c("combination", "temp","speciesID", 'rep')) %>%
+  left_join(., relBVt0, by = c("combination", "speciesID","sampling")) %>%
   mutate(exp = sumC*ratio*relBV)%>%
   mutate(RR_obs = (Mix_T - Mix_C)/(Mix_T+Mix_C),
          RR_ges_obs = (sumT-sumC)/(sumT+sumC),
@@ -221,7 +229,8 @@ allMix <- mono %>%
   mutate(sumexp = sum(exp, na.rm = T),
          RR_ges_exp = (sumexp-sumC)/(sumexp+sumC))%>%
   ungroup()%>%
-  mutate(delta_ges = RR_ges_obs-RR_ges_exp) 
+  mutate(delta_ges = RR_ges_obs-RR_ges_exp,
+         delta_spp = Mix_T -exp) 
 
 #subset for resistance calculation
 resistance_mix <- allMix%>%
@@ -248,13 +257,15 @@ for(i in 1:length(USI)){
                     type = c("linear"),absolutearea = FALSE)
     AUC.RR_obs<-auc(temp$sampling, temp$RR_ges_obs,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
                     type = c("linear"),absolutearea = FALSE)
+    AUC.spp <-auc(temp$sampling, temp$delta_spp,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
+                  type = c("linear"),absolutearea = FALSE)
     NBE <- AUC.RR_obs-AUC.RR_exp
     stab.auc.mix<-rbind(stab.auc.mix,
-                        data.frame(temp[1,c(1:3,7,8,23)],
+                        data.frame(temp[1,c(1:3,7,8,24)],
                                    NBE,
                                    AUC.ges.RR,
                                    AUC.RR_obs,
-                                   AUC.RR_exp))
+                                   AUC.RR_exp, AUC.spp))
     rm(temp)
   }
 }
@@ -279,7 +290,7 @@ allMix$temp[allMix$temp=='inc+fluc'] <- 'Increase + Fluctuation'
 
 BV_t0_mix <- allMix %>%
   filter(sampling == 1 ) %>%
-  group_by(speciesID, combination,temp) %>%
+  group_by(speciesID, combination,temp, sampling) %>%
   summarise(mean.BV = mean(relBV, na.rm = T)) %>%
   ggplot(. )+
   geom_col(aes(x = combination, y = mean.BV, fill = speciesID))+
@@ -323,7 +334,7 @@ tempPalette1<- c("#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 p1<-d3%>%
   group_by(N, temp,combination) %>%
-  summarise(mean.total.DRR = mean(NBE, na.rm = T),
+  reframe(mean.total.DRR = mean(NBE, na.rm = T),
             sd = sd(NBE,na.rm = T),
             se = sd/sqrt(n()))%>%
   mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
@@ -354,7 +365,7 @@ legendb<-get_legend(p1)
 
 p2 <- d3%>%
   group_by(N, temp) %>%
-  summarise(mean.total.DRR = mean(NBE, na.rm = T),
+  reframe(mean.total.DRR = mean(NBE, na.rm = T),
          sd = sd(NBE,na.rm = T),
          se = sd/sqrt(n()))%>%
   ggplot(.)+
@@ -525,7 +536,74 @@ RR1+RR2+RR4+RR5+
 ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.pdf'),width = 11, height = 8)
 
 
-  
+#### Species Variability - Delta spp ####
+
+spp_rem <- all %>% 
+  select(speciesID, combination, sampling, temp, rep,delta_spp) %>% 
+  mutate(USI = paste(temp, combination, speciesID, rep,sep = "_")) 
+
+sppData <-allMix %>% 
+  select(speciesID, combination, sampling, temp, rep,delta_spp) %>% 
+  mutate(USI = paste(temp, combination, speciesID, rep,sep = "_")) %>% 
+  bind_rows(., spp_rem) %>% 
+  mutate(N = str_length(combination))
+rm(spp_rem)
+
+sppData$speciesID[sppData$speciesID == "Asterio"] <- "A"
+sppData$speciesID[sppData$speciesID == "DityCux"] <- "D"
+sppData$speciesID[sppData$speciesID == "ThalaCux"] <- "T"
+sppData$speciesID[sppData$speciesID == "Guido"] <- "G"
+sppData$speciesID[sppData$speciesID == "Rhizo"] <- "R"
+
+
+##### Area Under the Curve - spp #####
+stab.auc.spp <- tibble()
+
+#unique identifier
+USI <- unique(sppData$USI)
+
+for(i in 1:length(USI)){
+  temp<-sppData[sppData$USI==USI[i], ]#creates a temporary data frame for each case
+  if(dim(temp)[1]>2){#does the next step only if at least 3 data points are present
+    AUC.spp <-auc(temp$sampling, temp$delta_spp,  from = min(temp$sampling, na.rm = TRUE), to = max(temp$sampling, na.rm = TRUE),
+                  type = c("linear"),absolutearea = FALSE)
+    stab.auc.spp<-rbind(stab.auc.spp,
+                        data.frame(temp[1,c(1,2,4,5,7,8)],
+                                   AUC.spp))
+    rm(temp)
+  }
+}
+
+str(stab.auc.spp)
+stab.auc.spp %>% 
+  group_by(temp, speciesID, N) %>% 
+  reframe(mean = mean(AUC.spp, na.rm = T),
+          sd = sd(AUC.spp, na.rm = T),
+          se = sd/sqrt(n())) %>% 
+  mutate(N = paste(ifelse(N == 3, "5 species", ifelse(N == 2, "2 species", "4 species")))) %>% 
+  ggplot(., aes(x = speciesID, y = mean, color = temp, shape = temp))+
+  geom_hline(yintercept = 0, color = "darkgrey")+
+  geom_errorbar(aes(ymin = mean- se, ymax = mean + sd), width = .2)+
+  geom_point(size = 2)+
+  scale_color_manual(values = tempPalette1)+
+  facet_grid(~N)+
+  labs(x = "Species",y = "Spp Variability", color = "Treatment", shape = "Treatment")+
+  theme_bw()+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
+  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(strip.background =element_rect(),
+        strip.text.x  = element_text(size = 14))+
+  guides(color = guide_legend(override.aes = list(size = 3.5)))+
+  theme(legend.position = 'bottom',
+        legend.key.size = unit(1, 'cm'),
+        legend.title = element_text(size=13),
+        legend.text = element_text(size=12))
+ggsave(plot= last_plot(), file = "output/ExtendedData_FigS_sppVariability.tiff", width = 8, height = 5)
+
+
 #### NBES resistance ####
 names(resistance_duo)
 names(resistance_mix)
