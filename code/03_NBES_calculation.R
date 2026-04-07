@@ -334,7 +334,7 @@ tempPalette1<- c("#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 p1<-d3%>%
   group_by(N, temp,combination) %>%
-  reframe(mean.total.DRR = mean(NBE, na.rm = T),
+  mutate(mean.total.DRR = mean(NBE, na.rm = T),
             sd = sd(NBE,na.rm = T),
             se = sd/sqrt(n()))%>%
   mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
@@ -365,13 +365,14 @@ legendb<-get_legend(p1)
 
 p2 <- d3%>%
   group_by(N, temp) %>%
-  reframe(mean.total.DRR = mean(NBE, na.rm = T),
+  mutate(mean.total.DRR = mean(NBE, na.rm = T),
          sd = sd(NBE,na.rm = T),
          se = sd/sqrt(n()))%>%
   ggplot(.)+
   geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_point(aes(x = as.factor(N), y = mean.total.DRR, color=temp, shape=temp),size = 3.5, alpha = 0.9)+
+  geom_point(aes(x = as.factor(N), y = NBE, shape=temp),color = 'black',size = 2, alpha = 0.3)+
   geom_errorbar(aes(x=as.factor(N),ymin = mean.total.DRR - se, ymax = mean.total.DRR +se, col=temp), alpha = 0.7, width = .1)+
+  geom_point(aes(x = as.factor(N), y = mean.total.DRR, color=temp, shape=temp),size = 3.5, alpha = 0.9)+
   labs(x = 'Species Richness', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
   scale_color_manual(values = tempPalette1)+
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))+
@@ -632,10 +633,10 @@ NBESresistance <- all_resistance  %>%
   geom_errorbar(aes(x= N, y = Mean, ymin = Mean-se, ymax = Mean+se,color = temp), width = 0.3, alpha = 0.8)+
   geom_point(aes( x = N, y = Mean, color = temp, shape = temp),  size = 3)+
     facet_wrap(~temp)+
-  labs(x = 'Species Richness', y=expression(NBES[resistance]))+
+  labs(x = 'Species Richness', y=expression(NBES[resistance]), color = "Treatment", shape ="Treatment")+
   scale_color_manual(values = tempPalette1)+
   theme_bw()+
-  theme(legend.position = 'none',
+  theme(legend.position = 'bottom',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
         axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
@@ -644,7 +645,7 @@ NBESresistance <- all_resistance  %>%
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESresistance
+NBESresistance+  theme(legend.position = 'none')
 
 
 #### NBES CV ####
@@ -655,12 +656,12 @@ CV_duo <- all %>%
   ungroup()%>%
   distinct(temp, rep, sampling, species,combination,RR_ges_obs,RR_ges_exp ) %>%
   group_by(temp, combination, species,rep) %>%
-  summarise(MeanObs = mean(RR_ges_obs),
-            MeanExp = mean(RR_ges_exp),
-            sdObs = sd(RR_ges_obs),
-            sdExp = sd(RR_ges_exp),
-            CVobs = MeanObs/sdObs,
-            CVExp = MeanExp/sdExp,
+  summarise(MeanObs = mean(abs(RR_ges_obs)),
+            MeanExp = mean(abs(RR_ges_exp)),
+            sdObs = sd(abs(RR_ges_obs)),
+            sdExp = sd(abs(RR_ges_exp)),
+            CVobs = (sdObs/MeanObs),
+            CVExp = (sdExp/MeanExp),
             NBES_CV = CVobs-CVExp)%>%
   ungroup() %>%
   select(-MeanObs,-MeanExp,-sdObs,-sdExp)
@@ -669,12 +670,12 @@ CV_mix <- allMix %>%
   ungroup()%>%
   distinct(temp, rep, sampling, species,combination,rep,RR_ges_obs,RR_ges_exp ) %>%
   group_by(temp, combination, species,rep) %>%
-  summarise(MeanObs = mean(RR_ges_obs),
-            MeanExp = mean(RR_ges_exp),
-            sdObs = sd(RR_ges_obs),
-            sdExp = sd(RR_ges_exp),
-            CVobs = MeanObs/sdObs,
-            CVExp = MeanExp/sdExp,
+  summarise(MeanObs = mean(abs(RR_ges_obs)),
+            MeanExp = mean(abs(RR_ges_exp)),
+            sdObs = sd(abs(RR_ges_obs)),
+            sdExp = sd(abs(RR_ges_exp)),
+            CVobs = (sdObs/MeanObs),
+            CVExp = (sdExp/MeanExp),
             NBES_CV = CVobs-CVExp)%>%
   ungroup() %>%
   select(-MeanObs,-MeanExp,-sdObs,-sdExp)
@@ -704,10 +705,11 @@ ggplot(.) +
   geom_point(aes( x = N, y = mean_NBES_CV,color = temp, shape = temp), size = 3)+
   geom_errorbar(aes(x= N, y = mean_NBES_CV, ymin = mean_NBES_CV-se_NBES_CV, ymax = mean_NBES_CV+se_NBES_CV,color = temp),width = 0.3, alpha = 0.8)+
   facet_wrap(~temp)+
-  labs(x = 'Species Richness', y=expression(NBES[CV]))+
+  #scale_y_continuous(breaks=seq(-500, 500, 150), limits = c(-520, 520))+
+  labs(x = 'Species Richness', y=expression(NBES[CV]), color = "Treatment", shape ="Treatment")+
   scale_color_manual(values = tempPalette1)+
   theme_bw()+
-  theme(legend.position = 'none',
+  theme(legend.position = 'bottom',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
         axis.text.x = element_text(size = 10,  colour = "black", angle = 0, vjust = 0.5)) +
@@ -716,9 +718,10 @@ ggplot(.) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 12))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
-NBESCV
+NBESCV+theme(legend.position="none")
 
-cowplot::plot_grid( NBESresistance,NBESCV,labels = c('(a)', '(b)'), ncol = 1)
-ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS5_NBESmetrics.tiff'), width = 8, height = 6)
+legend_supplFig <- get_legend(NBESCV)
+cowplot::plot_grid( NBESresistance+theme(legend.position="none"),NBESCV+theme(legend.position="none"),legend_supplFig, labels = c('(a)', '(b)'), rel_heights = c(1,1,0.3),ncol = 1)
+ggsave(plot = last_plot(), file = here('output/ExtendedData_FigureS5_NBESmetrics.pdf'), width = 8, height = 6)
 
 
