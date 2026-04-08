@@ -59,92 +59,15 @@ qqnorm(resid(M2, type = "normalized"), main=""); qqline(resid(M2, type = "normal
 anova(M2)
 summary(M2)
 
-##### Singular nested models: combination as random effect nested in N #####
-### 3 singular models instead of 1 as the two fixed effects are correlated --> to decipher underlying mechanisms
-
-#read ZUUR et al. 2008
-
-# example: combination is nested within Nfac 
-
-## format variable
-names(netdiv)
-netdiv$temp <- as.factor(netdiv$temp)
-
-### fluctuation ###
-
-#random intercept
-flucM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML', data = subset(netdiv, temp == 'Fluctuation'))
-
-#random intercept and slope
-ctrl <- lmeControl(opt='optim'); 
-flucM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Fluctuation'))
-flucM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, 
-                                                              msMaxEval =5000), data = subset(netdiv, temp == 'Fluctuation'))
-
-#compare models
-anova(flucM1, flucM2, flucM3)
-
-#check output
-anova(flucM1)
-summary(flucM1)
-
-# to check explanatory power of fixed effects, use simple lm 
-flucM0 <- gls(NBE ~ Nfac, method = 'REML', data = subset(netdiv, temp == 'Fluctuation')) # 0 Model
-anova(flucM1, flucM0)
-
-rr2::R2_lik(flucM0)
-
-### increase ###
-
-#random intercept
-incM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML', data = subset(netdiv, temp == 'Increase'))
-
-#random intercept and slope
-incM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Increase'))
-incM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = subset(netdiv, temp == 'Increase'))
-
-#compare models
-anova(incM1, incM2, incM3)
-
-#check output
-anova(incM1)
-summary(incM1)
-
-# to check explanatory power of fixed effects, use simple lm 
-incM0 <- gls(NBE ~ Nfac, method = 'REML', data =  subset(netdiv, temp == 'Increase')) # 0 Model
-anova(incM1, incM0)
-
-rr2::R2_lik(incM0)
-
-### incfluc ###
-
-#random intercept
-incflucM1 <- lme(NBE ~ Nfac, random = ~1|combination, method = 'REML',data = subset(netdiv, temp == 'Increase + Fluctuation'))
-
-#random intercept and slope
-incflucM2 <- lme(NBE ~ Nfac, random = ~1+Nfac|combination, method = 'REML', data = subset(netdiv, temp == 'Increase + Fluctuation'))
-incflucM3  = lme(NBE ~ Nfac, random = ~Nfac|combination, method = 'REML',control= lmeControl(niterEM =5000, msMaxIter =5000, msMaxEval =5000), data = subset(netdiv, temp == 'Increase + Fluctuation'))
-
-#compare models
-anova(incflucM1, incflucM2, incflucM3)
-
-#check output
-anova(incflucM1)
-summary(incflucM1)
-
-# to check explanatory power of fixed effects, use simple lm 
-incflucM0 <- gls(NBE ~ Nfac, method = 'REML', data = subset(netdiv, temp == 'Increase + Fluctuation')) # 0 Model
-
-rr2::R2_lik(incflucM0)
-
-# keep complete model for now
+# posthoc test
+emmeans::emmeans(M2, ~Nfac)
+emmeans::emmeans(M2, ~temp)
 
 
 ##### NBES: T-test #####
 #test against zero
 test1 <- t.test(netdiv$NBE, mu = 0, alternative = "two.sided")
 test1
-
 
 
 ##### NBES: Contrasts #####
@@ -157,6 +80,7 @@ netdiv$con1[netdiv$N==4]<- "B"
 lm1<-aov(NBE~temp*con1, netdiv)
 summary(lm1)
 TukeyHSD(lm1)
+emmeans::emmeans(lm1, ~pairwise ~ con1 | temp)
 
 # contrast 2: 2 versus 5 species
 
@@ -167,6 +91,7 @@ netdiv$con2[netdiv$N==5]<- "B"
 lm2<-aov(NBE~temp*con2, netdiv)
 summary(lm2)
 TukeyHSD(lm2)
+emmeans::emmeans(lm2, ~pairwise ~ con2 | temp)
 
 # contrast 3: 4 versus 5 species
 
@@ -176,6 +101,7 @@ netdiv$con3[netdiv$N==5]<-"B"
 
 lm3<-aov(NBE~temp*con3, netdiv)
 summary(lm3)
+emmeans::emmeans(lm3, ~pairwise ~ con3 | temp)
 
 #### data NBE Functioning ####
 
@@ -244,7 +170,7 @@ ggplot(Corr.data, aes(x= NetEffect, y = NBE, color = N, shape = temp))+
   facet_wrap(~temp)+
 geom_smooth(method = 'lm', se =F)+
   theme_bw()
-  ggsave(plot = last_plot(), file = here('NBES_NBEF_correlation.png'), width = 10, height = 4)
+#ggsave(plot = last_plot(), file = here('NBES_NBEF_correlation.png'), width = 10, height = 4)
 ggscatter(Corr.data, x = 'NetEffect', y='NBE', add = 'reg.line', col = 'temp',cor.coef = T, xlab = 'NBE on Functioning', ylab = 'NBES')+
   stat_cor(aes(color = temp), label.x = 3)
 
