@@ -334,7 +334,7 @@ tempPalette1<- c("#E41A1C" ,"#377EB8" ,'#c7b514' )
 
 p1<-d3%>%
   group_by(N, temp,combination) %>%
-  mutate(mean.total.DRR = mean(NBE, na.rm = T),
+  reframe(mean.total.DRR = mean(NBE, na.rm = T),
             sd = sd(NBE,na.rm = T),
             se = sd/sqrt(n()))%>%
   mutate(label = paste(ifelse( N == 2, '2 species', ifelse(N == 4, '4 species', '5 species'))))%>%
@@ -349,28 +349,28 @@ p1<-d3%>%
   facet_grid(~label, scales = 'free')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 13,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 13, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 16))+
+        strip.text.x  = element_text(size = 13))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
-  theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))
+  theme(legend.position = 'bottom',
+        legend.key.size = unit(0.5, 'cm'),
+        legend.title = element_text(size=11),
+        legend.text = element_text(size=10))
 p1
 legendb<-get_legend(p1)
 
 p2 <- d3%>%
   group_by(N, temp) %>%
-  mutate(mean.total.DRR = mean(NBE, na.rm = T),
+  reframe(mean.total.DRR = mean(NBE, na.rm = T),
          sd = sd(NBE,na.rm = T),
          se = sd/sqrt(n()))%>%
   ggplot(.)+
   geom_hline(yintercept = 0, color = 'darkgrey')+
-  geom_point(aes(x = as.factor(N), y = NBE, shape=temp),color = 'black',size = 2, alpha = 0.3)+
+ # geom_point(aes(x = as.factor(N), y = NBE, shape=temp),color = 'black',size = 2, alpha = 0.3)+
   geom_errorbar(aes(x=as.factor(N),ymin = mean.total.DRR - se, ymax = mean.total.DRR +se, col=temp), alpha = 0.7, width = .1)+
   geom_point(aes(x = as.factor(N), y = mean.total.DRR, color=temp, shape=temp),size = 3.5, alpha = 0.9)+
   labs(x = 'Species Richness', y = 'Net Biodiversity Effect on Stability', color = 'Treatment', shape = 'Treatment')+
@@ -379,33 +379,33 @@ p2 <- d3%>%
   theme_bw()+
   theme(legend.position = 'none',
         panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 13,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 13, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 p2
 
-#create plot grird
-nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),
-                            legendb,
-                            hjust = -1.1, 
-                            labels = c('(a)', '(b)'), 
-                            ncol = 3,
-                            rel_widths = c( 2/7,4/7,1/7), 
-                            rel_heights = c(10,0.2))
-
-
 #### Merge NBES with NBE on Functioning ####
 
-#run 05_NBE_HectorLoreau_NetBiodivEffect through
+#run 04_NBE_HectorLoreau_NetBiodivEffect through
 source(here("code/04_NBE_HectorLoreau_NetBiodivEffect.R"))
 
-(nbes/nbef)
-ggsave(plot = last_plot(), file = here('output/Figure5_NBE_NBES.pdf'), width = 15, height = 9)
-
+#create plot grid
+nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),
+                            NBE+theme(legend.position = 'none'),
+                            plot245+theme(legend.position = 'none'),
+                            legend_f+theme(legend.position = 'none'),legend_f,
+                            #legendb,
+                            # hjust = -1.1, 
+                            labels = c('(a)', '(b)'), 
+                            ncol = 2,
+                            rel_widths = c( 2/6,4/6), 
+                            rel_heights = c(1,1,0.3))
+nbes
+ggsave(plot = nbes, file = here('output/Figure5_NBE_NBES.pdf'), width = 240, height = 170, unit = "mm")
 
 
 #### Figure Observed Stability ####
@@ -441,17 +441,17 @@ RR1 <- MonoData %>%
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))
+        legend.key.size = unit(0.7, 'cm'),
+        legend.title = element_text(size=12),
+        legend.text = element_text(size=11))
 RR1
 
 RR2 <- MonoData %>%
@@ -466,17 +466,17 @@ RR2 <- MonoData %>%
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))
+        legend.key.size = unit(0.7, 'cm'),
+        legend.title = element_text(size=12),
+        legend.text = element_text(size=11))
 RR2
 
 RR4 <- MonoData %>%
@@ -491,17 +491,17 @@ RR4 <- MonoData %>%
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))
+        legend.key.size = unit(0.7, 'cm'),
+        legend.title = element_text(size=12),
+        legend.text = element_text(size=11))
 RR4
 
 RR5 <- MonoData %>%
@@ -516,17 +516,17 @@ RR5 <- MonoData %>%
   scale_y_continuous(limits = c(-7.5,7.5))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
         strip.text.x  = element_text(size = 14))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
   theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))
+        legend.key.size = unit(0.7, 'cm'),
+        legend.title = element_text(size=12),
+        legend.text = element_text(size=11))
 RR5
 
 RR1+RR2+RR4+RR5+
@@ -534,7 +534,7 @@ RR1+RR2+RR4+RR5+
   plot_annotation(tag_levels = "a", tag_prefix = '(',
                   tag_sep = '', tag_suffix = ')')
 
-ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.pdf'),width = 11, height = 8)
+ggsave(plot = last_plot(), file = here('output/Figure4_ObservedStab.pdf'),width = 230, height = 160, unit ="mm")
 
 
 #### Species Variability - Delta spp ####

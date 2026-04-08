@@ -50,7 +50,7 @@ data1%>%
 
 
 ##### TPC- Grand Mean ####
-TPC<- read_excel("~/Desktop/phD/Exp22/Experiments/CharlyTPC2021/createTPC/Species_TPC_maxBiom.xlsx")
+TPC<- read_excel("Data/Species_TPC_maxBiom.xlsx")
 str(TPC)
 
 grandMeanA <- data1 %>%
@@ -116,9 +116,9 @@ pa <- GrandMean%>%
   theme_bw()+
   theme(legend.position = 'none')+
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.text.x  = element_text(size = 12))
 
 
@@ -134,9 +134,9 @@ pb <-GrandMean%>%
   theme_bw()+
   theme(legend.position = 'none')+
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.text.x  = element_text(size = 12))
   
 
@@ -152,11 +152,11 @@ pc <-GrandMean%>%
   theme_bw()+
   theme(legend.position = 'none')+
   theme(axis.title.x = element_text(size = 14,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
   theme(axis.title.y = element_text(size = 14, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.text.x  = element_text(size = 12))
 
 
 cowplot::plot_grid(pa, pb, pc, ncol = 1,labels = c('(d)', '(e)', '(f)'))
-ggsave(plot=last_plot(), file = here('output/Figure3_topt_NBESeffect-temp.png'), width = 3, height = 8)
+ggsave(plot=last_plot(), file = here('output/Figure3_topt_NBESeffect-temp.pdf'), width = 3, height = 8)

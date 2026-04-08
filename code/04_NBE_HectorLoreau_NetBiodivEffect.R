@@ -182,17 +182,17 @@ NBE<-allNetBiodiv%>%
   scale_shape_manual(values= shape_values)+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 13,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 13, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 16))+
+        strip.text.x  = element_text(size = 13))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))+
-  theme(legend.position = 'right',
-        legend.key.size = unit(2, 'cm'),
-        legend.title = element_text(size=15),
-        legend.text = element_text(size=13))
+  theme(legend.position = 'bottom',
+        legend.key.size = unit(0.5, 'cm'),
+        legend.title = element_text(size=11),
+        legend.text = element_text(size=10))
 
 NBE
 
@@ -221,16 +221,16 @@ plot245<- allNetBiodiv %>%
   facet_wrap(~N, scales = 'free_x', labeller = labeller(N = labels_plot245))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()) + 
-  theme(axis.title.x = element_text(size = 16,face = "plain", colour = "black", vjust = 0),
-        axis.text.x = element_text(size = 12,  colour = "black", angle = 0, vjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 16, face = "plain", colour = "black", vjust = 1.8),
-        axis.text.y = element_text(size = 12,  colour = "black", angle = 0, hjust = 0.4)) +
+  theme(axis.title.x = element_text(size = 13,face = "plain", colour = "black", vjust = 0),
+        axis.text.x = element_text(size = 11,  colour = "black", angle = 0, vjust = 0.5)) +
+  theme(axis.title.y = element_text(size = 13, face = "plain", colour = "black", vjust = 1.8),
+        axis.text.y = element_text(size = 11,  colour = "black", angle = 0, hjust = 0.4)) +
   theme(strip.background =element_rect(),
-        strip.text.x  = element_text(size = 16))+
-  theme(legend.position = 'right',
-        legend.key.size = unit(1, 'cm'),
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=12))+
+        strip.text.x  = element_text(size = 13))+
+  theme(legend.position = 'bottom',
+        legend.key.size = unit(0.5, 'cm'),
+        legend.title = element_text(size=11),
+        legend.text = element_text(size=10))+
   guides(color = guide_legend(override.aes = list(size = 3.5)))
 plot245
 
@@ -243,7 +243,7 @@ nbef <- cowplot::plot_grid( NBE+theme(legend.position = 'none'),
                    hjust = -1.1, 
                    ncol = 3,
                    labels = c('(c)', '(d)'), 
-                   rel_widths = c( 2/7,4/7,1/7), 
+                   rel_widths = c( 2.2/7,4.2/7,0.6/7), 
                    rel_heights = c(10,0.2))
 #ggsave(plot = last_plot(), file = here('output/NBEonF.png'), width = 14, height = 4.5)
 
@@ -263,7 +263,7 @@ NBE1 <- allNetBiodiv%>%
   geom_errorbar(aes(x = N, y = mean.effect,ymin = mean.effect - se.effect, ymax = mean.effect +se.effect,color = temp), width = .3, alpha = .5 )+
   geom_point(aes(x = N, y = mean.effect,color = temp, shape = temp), size = 2.5, alpha = 0.7)+
   labs(x = 'Species Richness', y = 'Net Biodiversity effect', color = 'Treatment', shape = 'Treatment')+
-  scale_x_continuous(limits = c(1,5.5), breaks = c(2,4,5))+
+  #scale_x_continuous(limits = c(1,5.5), breaks = c(2,4,5))+
   scale_color_manual(values= temp1Palette)+
   scale_shape_manual(values= shape_values)+
   theme_bw()+
