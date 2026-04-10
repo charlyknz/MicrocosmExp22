@@ -399,13 +399,13 @@ nbes <- cowplot::plot_grid( p2,p1+theme(legend.position = 'none'),
                             plot245+theme(legend.position = 'none'),
                             legend_f+theme(legend.position = 'none'),legend_f,
                             #legendb,
-                            # hjust = -1.1, 
-                            labels = c('(a)', '(b)'), 
+                             hjust = -1.1, 
+                            labels = c('(a)', '(b)', '(c)', '(d)'), 
                             ncol = 2,
                             rel_widths = c( 2/6,4/6), 
                             rel_heights = c(1,1,0.3))
 nbes
-ggsave(plot = nbes, file = here('output/Figure5_NBE_NBES.pdf'), width = 240, height = 170, unit = "mm")
+ggsave(plot = nbes, file = here('output/Figure5_NBE_NBES.pdf'), width = 250, height = 180, unit = "mm")
 
 
 #### Figure Observed Stability ####
@@ -660,8 +660,8 @@ CV_duo <- all %>%
             MeanExp = mean(abs(RR_ges_exp)),
             sdObs = sd(abs(RR_ges_obs)),
             sdExp = sd(abs(RR_ges_exp)),
-            CVobs = (sdObs/MeanObs),
-            CVExp = (sdExp/MeanExp),
+            CVobs = 1/(sdObs/MeanObs),
+            CVExp = 1/(sdExp/MeanExp),
             NBES_CV = CVobs-CVExp)%>%
   ungroup() %>%
   select(-MeanObs,-MeanExp,-sdObs,-sdExp)
@@ -674,8 +674,8 @@ CV_mix <- allMix %>%
             MeanExp = mean(abs(RR_ges_exp)),
             sdObs = sd(abs(RR_ges_obs)),
             sdExp = sd(abs(RR_ges_exp)),
-            CVobs = (sdObs/MeanObs),
-            CVExp = (sdExp/MeanExp),
+            CVobs = 1/(sdObs/MeanObs),
+            CVExp = 1/(sdExp/MeanExp),
             NBES_CV = CVobs-CVExp)%>%
   ungroup() %>%
   select(-MeanObs,-MeanExp,-sdObs,-sdExp)
