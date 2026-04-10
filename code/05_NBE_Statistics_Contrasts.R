@@ -47,21 +47,21 @@ M0=gls(NBE~temp*Nfac, method="REML",data =netdiv, na.action=na.omit)
 anova(M2, M0) #gls is better
 
 #Autocorrelation test 
-plot(ACF(M2), alpha=0.05)
+plot(ACF(M0), alpha=0.05)
 
 #Residuals
 par(mfrow=c(1,1),cex.axis=1.2, cex.lab=1.5)
-plot(resid(M2, type = "normalized"), ylab="residuales")
-hist(resid(M2, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
-plot(fitted(M2),resid(M2, type = "normalized"),ylab="residuales")
-qqnorm(resid(M2, type = "normalized"), main=""); qqline(resid(M2, type = "normalized"))
+plot(resid(M0, type = "normalized"), ylab="residuales")
+hist(resid(M0, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
+plot(fitted(M0),resid(M0, type = "normalized"),ylab="residuales")
+qqnorm(resid(M0, type = "normalized"), main=""); qqline(resid(M0, type = "normalized"))
 
-anova(M2)
-summary(M2)
+anova(M0)
+summary(M0)
 
 # posthoc test
-emmeans::emmeans(M2, ~Nfac)
-emmeans::emmeans(M2, ~temp)
+emmeans::emmeans(M0, ~Nfac)
+emmeans::emmeans(M0, ~temp)
 
 
 ##### NBES: T-test #####
@@ -79,8 +79,11 @@ netdiv$con1[netdiv$N==4]<- "B"
 
 lm1<-aov(NBE~temp*con1, netdiv)
 summary(lm1)
-TukeyHSD(lm1)
-emmeans::emmeans(lm1, ~pairwise ~ con1 | temp)
+
+emmeans::emmeans(lm1, pairwise ~con1)
+
+# test for differences in treatments
+emmeans::emmeans(lm1, pairwise ~ con1 | temp, adjust = "tukey")
 
 # contrast 2: 2 versus 5 species
 
@@ -90,8 +93,11 @@ netdiv$con2[netdiv$N==5]<- "B"
 
 lm2<-aov(NBE~temp*con2, netdiv)
 summary(lm2)
-TukeyHSD(lm2)
-emmeans::emmeans(lm2, ~pairwise ~ con2 | temp)
+
+emmeans::emmeans(lm2, pairwise ~con2)
+
+#differences in treatments
+emmeans::emmeans(lm2, pairwise ~ con2 | temp, adjust = "tukey")
 
 # contrast 3: 4 versus 5 species
 
@@ -101,7 +107,11 @@ netdiv$con3[netdiv$N==5]<-"B"
 
 lm3<-aov(NBE~temp*con3, netdiv)
 summary(lm3)
-emmeans::emmeans(lm3, ~pairwise ~ con3 | temp)
+
+emmeans::emmeans(lm3, pairwise ~con3)
+
+#differences in treatments
+emmeans::emmeans(lm3, pairwise ~ con3 | temp, adjust = "tukey")
 
 #### data NBE Functioning ####
 
@@ -134,21 +144,21 @@ HectorRaw$fit_InterceptOnly2 <- predict(H1)
 
 
 # mixed model vs. model without random component: gls 
-M0=gls(NetEffect~temp*N, method="REML",data =HectorRaw, na.action=na.omit)
-anova(H1, M0) #gls is better
+H0=gls(NetEffect~temp*N, method="REML",data =HectorRaw, na.action=na.omit)
+anova(H1, H0) #gls is better
 
 #Autocorrelation test 
-plot(ACF(H1), alpha=0.05)
+plot(ACF(H0), alpha=0.05)
 
 #Residuals
 par(mfrow=c(1,1),cex.axis=1.2, cex.lab=1.5)
-plot(resid(H1, type = "normalized"), ylab="residuales")
-hist(resid(H1, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
-plot(fitted(H1),resid(H2, type = "normalized"),ylab="residuales")
-qqnorm(resid(H1, type = "normalized"), main=""); qqline(resid(H1, type = "normalized"))
+plot(resid(H0, type = "normalized"), ylab="residuales")
+hist(resid(H0, type = "normalized"), ylab="frecuencia",xlab="residuales", main="")
+plot(fitted(H0),resid(H2, type = "normalized"),ylab="residuales")
+qqnorm(resid(H0, type = "normalized"), main=""); qqline(resid(H0, type = "normalized"))
 
-anova(H1)
-summary(H1)
+anova(H0)
+summary(H0)
 
 ##### NBE on F: T-Test #####
 #test against zero
@@ -156,7 +166,7 @@ test2<-t.test(HectorRaw$NetEffect, mu = 0, alternative = "two.sided")
 test2
 
 
-##### NBES - NBE on F: Correlation #####
+#### NBES - NBE on F: Correlation ####
 Corr.data <- netdiv %>%
   select(combination, temp, rep, NBE, N) %>%
   mutate(N = as.factor(N)) %>%
